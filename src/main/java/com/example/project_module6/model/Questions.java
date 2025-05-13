@@ -1,5 +1,6 @@
 package com.example.project_module6.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -17,7 +18,6 @@ public class Questions {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String content;
-    private String category;
 
     @JsonManagedReference
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
@@ -30,4 +30,9 @@ public class Questions {
     @JsonManagedReference
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserAnswers> userAnswers;
+
+    @JsonBackReference
+    @ManyToOne
+    @JoinColumn(name = "category_id", nullable = false)
+    private Categorys category;
 }
