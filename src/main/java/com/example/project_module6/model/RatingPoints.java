@@ -20,7 +20,7 @@ public class RatingPoints {
     private int accumulatedPoints;
 
     @OneToOne
-    @JoinColumn(name = "id_user", referencedColumnName = "id", unique = true)
+    @JoinColumn(name = "user_id", referencedColumnName = "id", unique = true)
     private Users user;
 
     @JsonManagedReference
