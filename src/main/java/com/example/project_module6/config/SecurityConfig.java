@@ -53,7 +53,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ Thêm dòng này
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/account/login", "/api/account/register","/api/user/forgot-password","/api/user/reset-password").permitAll()
+                        .requestMatchers("/api/account/login", "/api/account/register","/api/user/forgot-password",
+                                "/api/user/reset-password","/api/questions/**","/api/category/**").permitAll()
                         .requestMatchers("/api/admin/users").hasRole("ADMIN")
                         .requestMatchers("/api/user/me","/api/user/update","/api/user/change-password").hasAnyRole("ADMIN","USER")
                         .anyRequest().authenticated()
