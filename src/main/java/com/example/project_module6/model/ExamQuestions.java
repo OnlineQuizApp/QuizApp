@@ -17,12 +17,12 @@ public class ExamQuestions {
     private int id;
     private double score;
 
-    @JsonBackReference
+
     @ManyToOne
     @JoinColumn(name = "exam_id", nullable = false)
     private Exams exam;
 
-    @JsonBackReference
+
     @ManyToOne
     @JoinColumn(name = "question_id", nullable = false)
     private Questions question;

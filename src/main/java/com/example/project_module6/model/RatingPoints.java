@@ -20,10 +20,7 @@ public class RatingPoints {
     private int accumulatedPoints;
 
     @OneToOne
-    @JoinColumn(name = "id_user", referencedColumnName = "id", unique = true)
+    @JoinColumn(name = "user_id", referencedColumnName = "id", unique = true)
     private Users user;
 
-    @JsonManagedReference
-    @OneToMany(mappedBy = "ratingPoint", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Results> results;
 }

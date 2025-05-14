@@ -33,8 +33,15 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
+//    implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'io.jsonwebtoken:jjwt:0.9.1'
+
+    // đọc ghi file
+    implementation 'org.apache.poi:poi:5.1.0'
+    implementation 'org.apache.poi:poi-ooxml:5.1.0'
+    implementation 'org.apache.xmlbeans:xmlbeans:5.1.1'
+    // cloudinary
+    implementation 'com.cloudinary:cloudinary-http44:1.33.0'
 }
 
 tasks.named('test') {

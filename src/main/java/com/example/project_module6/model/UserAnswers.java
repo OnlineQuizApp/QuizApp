@@ -16,17 +16,17 @@ public class UserAnswers {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @JsonBackReference
+
     @ManyToOne
     @JoinColumn(name = "result_id", nullable = false)
     private Results result;
 
-    @JsonBackReference
+
     @ManyToOne
     @JoinColumn(name = "question_id", nullable = false)
     private Questions question;
 
-    @JsonBackReference
+
     @ManyToOne
     @JoinColumn(name = "answer_id", nullable = false)
     private Answers answer;

@@ -18,12 +18,7 @@ public class Exams {
     private int id;
     private String title;
     private String category;
+    @Column(name = "soft_delete")
+    private boolean softDelete=false;
 
-    @JsonManagedReference
-    @OneToMany(mappedBy = "exam", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ExamQuestions> examQuestions;
-
-    @JsonManagedReference
-    @OneToMany(mappedBy = "exam", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Results> results;
 }
