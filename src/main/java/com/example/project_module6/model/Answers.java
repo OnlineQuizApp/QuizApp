@@ -18,14 +18,15 @@ public class Answers {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String content;
-    private boolean is_correct = false;
+    private boolean correct = false;
 
-    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "question_id", nullable = false)
     private Questions question;
 
-    @JsonManagedReference
-    @OneToMany(mappedBy = "answer", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UserAnswers> userAnswers;
+    public Answers(int id, String content,boolean correct) {
+        this.id = id;
+        this.content = content;
+        this.correct =correct;
+    }
 }

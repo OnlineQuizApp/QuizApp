@@ -17,8 +17,15 @@ public class Categorys {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String name;
+    @Column(name = "soft_delete")
+    private boolean softDelete=false;
 
-    @JsonManagedReference
-    @OneToMany(mappedBy = "category", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Questions> questions;
+    public Categorys(int id) {
+        this.id = id;
+    }
+
+    public Categorys(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
 }

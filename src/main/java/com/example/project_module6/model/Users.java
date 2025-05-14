@@ -31,8 +31,5 @@ public class Users {
         USER
     }
 
-    @JsonManagedReference
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Results> result;
 
 }

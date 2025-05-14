@@ -23,7 +23,4 @@ public class RatingPoints {
     @JoinColumn(name = "user_id", referencedColumnName = "id", unique = true)
     private Users user;
 
-    @JsonManagedReference
-    @OneToMany(mappedBy = "ratingPoint", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Results> results;
 }

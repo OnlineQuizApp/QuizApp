@@ -21,21 +21,18 @@ public class Results {
     private double totalScore;
     private LocalDate submittedAt;
 
-    @JsonBackReference
+
     @ManyToOne
     @JoinColumn(name = "exam_id", nullable = false)
     private Exams exam;
 
-    @JsonBackReference
+
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
 
-    @JsonManagedReference
-    @OneToMany(mappedBy = "result",fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UserAnswers> userAnswers;
 
-    @JsonBackReference
+
     @ManyToOne
     @JoinColumn(name = "rating_point_id", nullable = false)
     private RatingPoints ratingPoint;
