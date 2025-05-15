@@ -12,13 +12,13 @@ import org.springframework.stereotype.Repository;
 public interface IQuestionsRepository extends JpaRepository<Questions,Integer> {
     Questions findById(int id);
     void deleteById(int id);
-    @Query(value = "select q.*,c.name from questions q join categorys c on q.category_id=c.id where q.soft_delete=false and c.id=?1"
-    ,countQuery = "select q.*,c.name from questions q join categorys c on q.category_id=c.id where q.soft_delete=false and c.id=?1"
+    @Query(value = "select q.*,c.name from questions q join categorys c on q.category_id=c.id where q.soft_delete=false and c.name like ?1"
+    ,countQuery = "select q.*,c.name from questions q join categorys c on q.category_id=c.id where q.soft_delete=false and c.name like ?1"
     ,nativeQuery = true)
-    Page<Questions> searchQuestionByCategory(int category, Pageable pageable);
+    Page<Questions> searchQuestionByCategory(String category, Pageable pageable);
 
-    @Query(value = "SELECT q.* FROM questions q WHERE q.soft_delete = false",
-            countQuery = "SELECT COUNT(*) FROM questions q WHERE q.soft_delete = false",
+    @Query(value = "SELECT q.*,c.name FROM questions q join categorys c on q.category_id=c.id where q.soft_delete=false",
+            countQuery = "SELECT q.*,c.name FROM questions q join categorys c on q.category_id=c.id where q.soft_delete=false",
             nativeQuery = true)
     Page<Questions> getAllQuestions(Pageable pageable);
 
