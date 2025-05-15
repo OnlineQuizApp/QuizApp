@@ -12,7 +12,7 @@ public interface IQuestionService {
     void readAndWriteFile(MultipartFile file);
     boolean updateQuestion(int id, QuestionsDto questionsDto);
     boolean deleteQuestion(int id);
-    Page<Questions> searchQuestionByCategory(int category, Pageable pageable);
+    Page<Questions> searchQuestionByCategory(String category, Pageable pageable);
     Page<Questions> findAllQuestions(Pageable pageable);
     QuestionDtoResponse findByIdDetail(int id);
     Questions findById(int id);

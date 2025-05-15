@@ -2,6 +2,7 @@ package com.example.project_module6.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.*;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.*;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.*;
@@ -39,7 +40,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("http://localhost:3000")); // Hoặc "*" nếu không bảo mật
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type","Content-Disposition"));
         config.setAllowCredentials(true); // Nếu frontend dùng cookie hoặc token
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -55,6 +56,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/account/login", "/api/account/register","/api/user/forgot-password",
                                 "/api/user/reset-password","/api/questions/**","/api/category/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/questions/upload-file-img","/api/questions/upload-file-img/**").permitAll()
                         .requestMatchers("/api/admin/users").hasRole("ADMIN")
                         .requestMatchers("/api/user/me","/api/user/update","/api/user/change-password").hasAnyRole("ADMIN","USER")
                         .anyRequest().authenticated()

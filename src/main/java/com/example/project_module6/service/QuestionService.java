@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class QuestionService implements IQuestionService {
@@ -65,7 +66,7 @@ public class QuestionService implements IQuestionService {
             Sheet sheet = workbook.getSheetAt(0);
             Questions currentQuestion = null;
             for (Row row : sheet) {
-//                if (row.getRowNum() == 0) continue;
+                if (row.getRowNum() == 0) continue;
                 // Lấy ô chứa "Câu 1", "Câu 2", để biết bắt đầu câu hỏi mới (cột C – index 2)
                 Cell questionIndexCell = row.getCell(2);
                 // Lấy nội dung câu hỏi (cột D – index 3)
@@ -80,16 +81,23 @@ public class QuestionService implements IQuestionService {
 
                     // Đọc category_id từ cột E (index 4)
                     Cell categoryIdCell = row.getCell(4);
+                    // Đọc name từ cột H (index 7)
+                    Cell categoryNameCell = row.getCell(7);
 
                     if (categoryIdCell != null) {
                         int categoryId = (int) categoryIdCell.getNumericCellValue();
                         Categorys category = categoryRepository.findById(categoryId).orElse(null);
-
                         if (category != null) {
                             currentQuestion.setCategory(category);
+                        }else {
+                            Categorys categorys = new Categorys();
+                            if (categoryNameCell!=null){
+                                categorys.setName(categoryNameCell.getStringCellValue());
+                            }
+                            categoryRepository.save(categorys);
+                            currentQuestion.setCategory(categorys);
                         }
                     }
-
                     // Lưu câu hỏi vào DB
                     currentQuestion = questionsRepository.save(currentQuestion);
                     continue;
@@ -102,26 +110,46 @@ public class QuestionService implements IQuestionService {
                     if (answerText == null || answerText.trim().isEmpty()) {
                         continue;
                     }
-                    Answers answer = new Answers();
-                    answer.setQuestion(currentQuestion);
-                    answer.setContent(answerText);
-                    answer.setCorrect(isCorrectCell.getBooleanCellValue());
-                    answersRepository.save(answer);
+                    if (currentQuestion!=null){
+                        Answers answer = new Answers();
+                        answer.setQuestion(currentQuestion);
+                        answer.setContent(answerText);
+                        answer.setCorrect(isCorrectCell.getBooleanCellValue());
+                        answersRepository.save(answer);
+                    }
+
                 }
             }
         } catch (IOException e) {
             throw new RuntimeException("Lỗi khi xử lý file Excel: " + e.getMessage(), e);
         }
-
     }
 
     @Override
     public boolean updateQuestion(int id, QuestionsDto questionsDto) {
         Questions questions = questionsRepository.findById(id);
         if (questions != null) {
-            Categorys categorys = questionsDto.getCategory();
             questions.setContent(questionsDto.getContent());
-            questions.setCategory(categorys);
+            questions.setCategory(questionsDto.getCategory());
+
+            // 1. Xóa tất cả đáp án cũ
+            List<Answers> oldAnswers = answersRepository.findByQuestionId(id);
+            answersRepository.deleteAll(oldAnswers);
+
+            // 2. Gán lại đáp án mới từ DTO
+            List<Answers> newAnswers = questionsDto.getAnswers().stream().map(a -> {
+                Answers answer = new Answers();
+                answer.setContent(a.getContent());
+                answer.setCorrect(a.isCorrect());
+                answer.setQuestion(questions); // Liên kết lại câu hỏi
+                return answer;
+            }).collect(Collectors.toList());
+
+            // 3. Lưu câu hỏi trước (nếu cần cascade thì không cần bước này)
+            questionsRepository.save(questions);
+
+            // 4. Lưu đáp án mới
+            answersRepository.saveAll(newAnswers);
             questionsRepository.save(questions);
             return true;
         }
@@ -140,8 +168,8 @@ public class QuestionService implements IQuestionService {
     }
 
     @Override
-    public Page<Questions> searchQuestionByCategory(int category, Pageable pageable) {
-        return questionsRepository.searchQuestionByCategory(category, pageable);
+    public Page<Questions> searchQuestionByCategory(String category, Pageable pageable) {
+        return questionsRepository.searchQuestionByCategory("%"+category+"%", pageable);
     }
 
     @Override
