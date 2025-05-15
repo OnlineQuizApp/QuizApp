@@ -33,18 +33,18 @@ public class QuestionsController {
     private ICloudinaryService cloudinaryService;
 
     @GetMapping("")
-    public ResponseEntity<Page<?>> getAllQuestions(@RequestParam(value = "category", required = false)
-                                                   Integer category,
+    public ResponseEntity<Page<?>> getAllQuestions(@RequestParam(defaultValue = "", required = false)
+                                                   String category,
                                                    @PageableDefault(size = 5)
                                                    Pageable pageable) {
 
         Page<Questions> questions;
-        if (category == null) {
-            questions = questionService.findAllQuestions(pageable);
-            System.out.println("------null---------" + questions);
-        } else {
+        if (category != null && !category.trim().isEmpty()) {
             questions = questionService.searchQuestionByCategory(category, pageable);
-            System.out.println("---------------" + questions);
+            System.out.println("------search---------" + questions);
+        } else {
+            questions = questionService.findAllQuestions(pageable);
+            System.out.println("-------findAll--------" + questions);
         }
         if (questions.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -67,9 +67,9 @@ public class QuestionsController {
     }
 
     @PostMapping(value = "/upload-file-img", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> uploadFileImg(@RequestParam("file") MultipartFile file,
-                                           @RequestParam("category_id") int categoryId,
-                                           @RequestParam("answers") String answers) {
+    public ResponseEntity<?> uploadFileImg(@RequestParam ("file") MultipartFile file,
+                                           @RequestParam ("categoryId") int categoryId,
+                                           @RequestParam ("answers") String answers) {
         try {
             QuestionsDto questions = new QuestionsDto();
             String img = cloudinaryService.uploadImage(file);
@@ -85,9 +85,11 @@ public class QuestionsController {
             questionService.createQuestions(questions);
             return new ResponseEntity<>("Thêm File hình ảnh Thành Công! ", HttpStatus.OK);
         } catch (Exception e) {
+            System.out.println("answers raw JSON: " + answers);
             return new ResponseEntity<>("Lỗi khi xử lý hình ảnh: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     @PostMapping("")
     public ResponseEntity<?> createQuestions(@RequestBody QuestionsDto questionsDto) {
