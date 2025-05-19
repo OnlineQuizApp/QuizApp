@@ -17,8 +17,17 @@
         private int id;
         private String content;
         private String img;
+        private List<AnswersDto>examAnswers;
         private List<Answers> answers;
         private Categorys category;
         private boolean softDelete=false;
 
+        public QuestionsDto(String content) {
+            this.content = content;
+        }
+
+        public QuestionsDto(String content, List<AnswersDto> examAnswers) {
+            this.content = content;
+            this.examAnswers = examAnswers;
+        }
     }

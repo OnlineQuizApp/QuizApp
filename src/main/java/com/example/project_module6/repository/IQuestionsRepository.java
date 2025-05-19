@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface IQuestionsRepository extends JpaRepository<Questions,Integer> {
     Questions findById(int id);
@@ -38,6 +40,26 @@ public interface IQuestionsRepository extends JpaRepository<Questions,Integer> {
                                                         WHERE q.soft_delete = false and q.id=?1 group by q.id
                  """,nativeQuery = true)
     QuestionDetailDataDto findQuestionsById(Integer id);
-//    @Query(value = "delete from questions q where q.id  = ?1",nativeQuery = true)
-//    void deleteQuestions(int id);
+
+
+    /// lấy random câu hỏi
+    @Query(value = """
+            SELECT q.*
+                   FROM questions q
+                   JOIN categorys c ON q.category_id = c.id
+                   WHERE c.name like ?1
+                   ORDER BY RAND()
+                   LIMIT ?2
+                   """,nativeQuery = true)
+    List<Questions> findRandomQuestions(String category,int numberQuestions);
+    ///  đếm số lượng câu hỏi
+    @Query(value = """
+           select count(*) from questions q 
+           join categorys c on q.category_id = c.id
+           where c.name like ?1 and q.soft_delete=false      
+                 """,nativeQuery = true)
+    Integer countQuestions(String category);
+
+    ///  xoá exams
+
 }
