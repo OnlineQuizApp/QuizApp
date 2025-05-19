@@ -16,13 +16,9 @@ public class ExamQuestions {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private double score;
-
-
     @ManyToOne
     @JoinColumn(name = "exam_id", nullable = false)
     private Exams exam;
-
-
     @ManyToOne
     @JoinColumn(name = "question_id", nullable = false)
     private Questions question;

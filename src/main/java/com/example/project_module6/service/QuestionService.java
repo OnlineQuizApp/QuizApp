@@ -61,6 +61,7 @@ public class QuestionService implements IQuestionService {
 
     @Override
     public void readAndWriteFile(MultipartFile file) {
+        DataFormatter formatter = new DataFormatter();
         try (InputStream inputStream = file.getInputStream()) {
             Workbook workbook = WorkbookFactory.create(inputStream);
             Sheet sheet = workbook.getSheetAt(0);
@@ -92,7 +93,7 @@ public class QuestionService implements IQuestionService {
                         }else {
                             Categorys categorys = new Categorys();
                             if (categoryNameCell!=null){
-                                categorys.setName(categoryNameCell.getStringCellValue());
+                                categorys.setName(formatter.formatCellValue(categoryNameCell));
                             }
                             categoryRepository.save(categorys);
                             currentQuestion.setCategory(categorys);
@@ -104,8 +105,8 @@ public class QuestionService implements IQuestionService {
                 }
 
                 // Nếu đang trong câu hỏi hiện tại, đọc đáp án (từ cột F, G, H)
-                if (questionContentCell == null && answerContentCell != null && isCorrectCell != null) {
-                    DataFormatter formatter = new DataFormatter();
+                if (answerContentCell != null && isCorrectCell != null) {
+
                     String answerText = formatter.formatCellValue(answerContentCell);
                     if (answerText == null || answerText.trim().isEmpty()) {
                         continue;
@@ -160,8 +161,8 @@ public class QuestionService implements IQuestionService {
     public boolean deleteQuestion(int id) {
         Questions questions = questionsRepository.findById(id);
         if (questions != null) {
-            answersRepository.deleteAnswersByQuestionId(id);
-            questionsRepository.deleteById(id);
+            questions.setSoftDelete(true);
+            questionsRepository.save(questions);
             return true;
         }
         return false;

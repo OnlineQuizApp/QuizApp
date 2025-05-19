@@ -18,4 +18,8 @@ public class AnswersDto {
         this.content = content;
         this.correct = correct;
     }
+    public AnswersDto( String content, boolean correct) {
+        this.content = content;
+        this.correct = correct;
+    }
 }
