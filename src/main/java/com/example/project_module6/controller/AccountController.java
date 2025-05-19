@@ -14,9 +14,13 @@ import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/account")
@@ -47,15 +51,23 @@ public class AccountController {
         return new AuthResponse(token);
     }
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody UserDto userDto){
+    public ResponseEntity<?> register(@Validated @RequestBody UserDto userDto, BindingResult bindingResult){
         if(userService.existsByUsername(userDto.getUsername())){
-            return new ResponseEntity<>("Username already exists", HttpStatus.CONFLICT);//409
+            return new ResponseEntity<>("Tên đăng nhập đã tồn tại!", HttpStatus.CONFLICT);//409
         }
         if(userService.existsByEmail(userDto.getEmail())){
-            return new ResponseEntity<>("Email already exists", HttpStatus.CONFLICT);//409
+            return new ResponseEntity<>("Email đăng nhập đã tồn tại!", HttpStatus.CONFLICT);//409
         }
-        if(!userDto.getPassword().equals(userDto.getPasswordConfirm())){
-            return new ResponseEntity<>("Password confirmation does not match", HttpStatus.BAD_REQUEST);//400
+//        if(!userDto.getPassword().equals(userDto.getPasswordConfirm())){
+//            return new ResponseEntity<>("Mật khẩu không khớp", HttpStatus.BAD_REQUEST);//400
+//        }
+        new UserDto().validate(userDto,bindingResult);
+        if(bindingResult.hasErrors()){
+            Map<String, String> errors = new HashMap<>();
+            bindingResult.getFieldErrors().forEach(error ->
+                    errors.put(error.getField(), error.getDefaultMessage())
+            );
+            return ResponseEntity.badRequest().body(errors); // 400
         }
 
         Users user = new Users();
@@ -67,7 +79,7 @@ public class AccountController {
         user.setRole(Users.Role.valueOf(userDto.getRole()));
         user.setStatus(userDto.isStatus());
         userService.save(user);
-        String token = jwtUtil.generateToken(user.getUsername());
-        return new ResponseEntity<>(new AuthResponse(token),HttpStatus.CREATED); //201
+                String token = jwtUtil.generateToken(user.getUsername());
+                return new ResponseEntity<>(new AuthResponse(token),HttpStatus.CREATED); //201
     }
 }
