@@ -2,22 +2,21 @@
 
 
     import jakarta.persistence.*;
-    import lombok.AllArgsConstructor;
-    import lombok.Data;
-    import lombok.NoArgsConstructor;
-
+    import lombok.*;
 
 
     @Entity
     @AllArgsConstructor
     @NoArgsConstructor
-    @Data
+   @Getter
+    @Setter
     public class Questions {
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         private int id;
         private String content;
         private String img;
+        private String video;
         @Column(name = "soft_delete")
         private boolean softDelete=false;
         @ManyToOne

@@ -68,7 +68,9 @@ public class ExamsController {
         }
     }
     @GetMapping("/{id}")
-    public ResponseEntity<Page<?>> detailExams(@PageableDefault(size = 1) @PathVariable("id")int id,Pageable pageable){
+    public ResponseEntity<Page<?>> detailExams(@PathVariable("id")int id,
+                                               @PageableDefault(size = 1)
+                                               Pageable pageable){
         Page<ExamsQuestionsResponseDto> examsQuestionsResponseDto = examsQuestionsService.detailExamsQuestions(id,pageable);
         if (examsQuestionsResponseDto!=null){
             return new ResponseEntity<>(examsQuestionsResponseDto,HttpStatus.OK);

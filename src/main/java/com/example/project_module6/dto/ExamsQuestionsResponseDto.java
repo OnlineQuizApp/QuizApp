@@ -20,6 +20,7 @@ public class ExamsQuestionsResponseDto {
     private int id;
     private String title;
     private String category;
+    private String img;
     private int numberQuestions;
     private Time testTime;
     private List<QuestionsDto> questions;

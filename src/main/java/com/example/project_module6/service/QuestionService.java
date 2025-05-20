@@ -47,6 +47,9 @@ public class QuestionService implements IQuestionService {
         if (questionsDto.getImg()!=null){
             questions.setImg(questionsDto.getImg());
         }
+        if (questionsDto.getVideo()!=null){
+            questions.setVideo(questionsDto.getVideo());
+        }
         questionsRepository.save(questions);
         List<Answers> answersList = questionsDto.getAnswers();
         if (!answersList.isEmpty()){
@@ -62,6 +65,7 @@ public class QuestionService implements IQuestionService {
     @Override
     public void readAndWriteFile(MultipartFile file) {
         DataFormatter formatter = new DataFormatter();
+        boolean hasNewQuestion = false;
         try (InputStream inputStream = file.getInputStream()) {
             Workbook workbook = WorkbookFactory.create(inputStream);
             Sheet sheet = workbook.getSheetAt(0);
@@ -77,9 +81,18 @@ public class QuestionService implements IQuestionService {
 
                 if (questionIndexCell != null && questionContentCell != null) {
                     // Tạo câu hỏi mới
+
+                    String questionContent= questionContentCell.getStringCellValue().trim();
+                    if (questionContent.isEmpty()){
+                        continue;
+                    }
+                    boolean questionCheck=questionsRepository.existsByContent(questionContent);
+                    if (questionCheck){
+                        currentQuestion=null;
+                        continue;
+                    }
                     currentQuestion = new Questions();
                     currentQuestion.setContent(questionContentCell.getStringCellValue());
-
                     // Đọc category_id từ cột E (index 4)
                     Cell categoryIdCell = row.getCell(4);
                     // Đọc name từ cột H (index 7)
@@ -101,6 +114,7 @@ public class QuestionService implements IQuestionService {
                     }
                     // Lưu câu hỏi vào DB
                     currentQuestion = questionsRepository.save(currentQuestion);
+                    hasNewQuestion = true;
                     continue;
                 }
 
@@ -121,6 +135,9 @@ public class QuestionService implements IQuestionService {
 
                 }
             }
+            if (!hasNewQuestion) {
+                throw new RuntimeException("File này đã được thêm, không có câu hỏi mới nào.");
+            }
         } catch (IOException e) {
             throw new RuntimeException("Lỗi khi xử lý file Excel: " + e.getMessage(), e);
         }
@@ -137,6 +154,9 @@ public class QuestionService implements IQuestionService {
             List<Answers> oldAnswers = answersRepository.findByQuestionId(id);
             answersRepository.deleteAll(oldAnswers);
 
+            if (questionsDto.getImg() != null) {
+                questions.setImg(questionsDto.getImg());
+            }
             // 2. Gán lại đáp án mới từ DTO
             List<Answers> newAnswers = questionsDto.getAnswers().stream().map(a -> {
                 Answers answer = new Answers();
@@ -169,8 +189,13 @@ public class QuestionService implements IQuestionService {
     }
 
     @Override
+    public Page<Questions> searchQuestionByQuestionContent(String content, Pageable pageable) {
+        return questionsRepository.searchQuestionByQuestionContent("%"+content+"%", pageable);
+    }
+
+    @Override
     public Page<Questions> searchQuestionByCategory(String category, Pageable pageable) {
-        return questionsRepository.searchQuestionByCategory("%"+category+"%", pageable);
+        return questionsRepository.searchQuestionByCategory(category,pageable);
     }
 
     @Override
