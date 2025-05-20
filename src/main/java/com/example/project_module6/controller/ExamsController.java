@@ -41,9 +41,9 @@ public class ExamsController {
         return new ResponseEntity<>(exams, HttpStatus.OK);
     }
     @PostMapping("")
-    public ResponseEntity<?> createExams(@RequestBody ExamsDto examsDto){
+    public ResponseEntity<?> createExamsRandom(@RequestBody ExamsDto examsDto){
         try {
-            examsService.addExams(examsDto);
+            examsService.addExamsRandom(examsDto);
             return new ResponseEntity<>("Thêm mới  đề thi thành công! ",HttpStatus.OK);
         }catch (IllegalArgumentException ex){
             return ResponseEntity.badRequest().body(ex.getMessage());

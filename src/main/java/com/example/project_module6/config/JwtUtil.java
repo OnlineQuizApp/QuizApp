@@ -45,6 +45,23 @@ public class JwtUtil {
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
+    public String generateResetToken(String username) {
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        System.out.println(userDetails);
+        Optional<Users> user = userRepository.findByUsername(username);
+        System.out.println(user.get().getName());
+        List<String> roles = userDetails.getAuthorities().stream()
+                .map(auth -> "ROLE_" + auth.getAuthority().replace("ROLE_", ""))
+                .collect(Collectors.toList());
+        return Jwts.builder()
+                .setSubject(username)
+                .claim("roles", roles)
+                .claim("name", user.get().getName())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 2 * 60)) // 5P
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
 
     public String extractUsername(String token) {
         return Jwts.parserBuilder()

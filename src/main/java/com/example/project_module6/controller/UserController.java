@@ -88,7 +88,7 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         Users user = userOpt.get();
-        String token = jwtUtil.generateToken(user.getUsername());
+        String token = jwtUtil.generateResetToken(user.getUsername());
         String resetLink = "http://localhost:3000/reset-password?token=" + token;
         userService.sendPasswordResetEmail(user.getEmail(), resetLink);
         return ResponseEntity.ok("Reset email sent");
