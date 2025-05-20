@@ -23,10 +23,11 @@ public class AdminInitializer implements ApplicationRunner {
         if(userRepository.findByUsername("admin").isEmpty()){
             Users admin = new Users();
             admin.setUsername("admin");
-            String rawPassword = "123456";
+            String rawPassword = "Dat2503@";
             String encodedPassword = passwordEncoder.encode(rawPassword);
             admin.setPassword(encodedPassword);
             admin.setRole(Users.Role.ADMIN);
+            admin.setEmail("khucvylinh1998@outlook.com");
             userRepository.save(admin);
             System.out.println("Admin đã được thêm vào database");
         }

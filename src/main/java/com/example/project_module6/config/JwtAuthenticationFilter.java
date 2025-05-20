@@ -58,6 +58,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     if (roles == null || roles.isEmpty()) {
                         return Collections.emptyList();
                     }
+                    System.out.println("Roles extracted from JWT: " + roles);
                     return roles.stream()
                             .map(SimpleGrantedAuthority::new)
                             .collect(Collectors.toList());
