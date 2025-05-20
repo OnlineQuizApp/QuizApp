@@ -26,7 +26,7 @@ public class UserDto implements Validator {
 
     @Override
     public boolean supports(Class<?> clazz) {
-        return false;
+        return UserDto.class.equals(clazz);
     }
 
     @Override
@@ -41,8 +41,8 @@ public class UserDto implements Validator {
         }
         if (userDto.getPassword() == null || userDto.getPassword().trim().isEmpty()) {
             errors.rejectValue("password", null, "Không được bỏ trống");
-        } else if (!userDto.getPassword().matches("^[a-zA-Z0-9]{5,20}$")) {
-            errors.rejectValue("password", null, "Mật Khẩu phải từ 5-20 ký tự, chỉ gồm chữ và số");
+        } else if (!userDto.getPassword().matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[\\W_]).{8,}$")) {
+            errors.rejectValue("password", null, "Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt!");
         } else if (!userDto.getPassword().equals(userDto.getPasswordConfirm())) {
             errors.rejectValue("passwordConfirm", null, "Mật Khẩu phải không khớp");
         }
