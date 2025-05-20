@@ -7,14 +7,18 @@ import com.example.project_module6.dto.QuestionsDto;
 import com.example.project_module6.model.Answers;
 import com.example.project_module6.model.Questions;
 import com.example.project_module6.repository.IExamsQuestionRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+@Slf4j
 @Service
 public class ExamsQuestionsService implements IExamsQuestionsService {
     @Autowired
@@ -24,13 +28,18 @@ public class ExamsQuestionsService implements IExamsQuestionsService {
     public Page<ExamsQuestionsResponseDto> detailExamsQuestions(int id, Pageable pageable) {
         Page<ExamsQuestionDataDto> dataDtoList = examsQuestionRepository.detailExamsQuestions(id, pageable);
         if (!dataDtoList.isEmpty()){
+            System.out.println(dataDtoList+"--------------");
             return dataDtoList.map(dto -> {
                 ExamsQuestionsResponseDto responseDto = new ExamsQuestionsResponseDto();
-                responseDto.setId(dto.getId());
+                responseDto.setId(dto.getExamsId());
                 responseDto.setNumberQuestions(dto.getNumberOfQuestions());
                 responseDto.setCategory(dto.getCategory());
                 responseDto.setTitle(dto.getTitle());
                 responseDto.setTestTime(dto.getTestTime());
+                if (dto.getImg()!=null){
+                    responseDto.setImg(dto.getImg());
+                }
+                System.out.println("Img:--------------"+responseDto.getImg());
                 List<AnswersDto> answers = new ArrayList<>();
                 String answersRaw = dto.getAnswers();
                 if (answersRaw != null && !answersRaw.isEmpty()) {
@@ -54,19 +63,49 @@ public class ExamsQuestionsService implements IExamsQuestionsService {
                         }
                     }
                 }
-                List<QuestionsDto> questions = new ArrayList<>();
+                List<QuestionsDto> questions = new ArrayList<>(); //  tạo danh sách chứa các câu hỏi
+                Set<String> seenQuestions = new HashSet<>(); // tạo danh sách để kiểm tra nếu có câu hỏi trùng lặp
+                int questionIndex = 0; //  chỉ số câu hỏi  để tính vị trí bắt đầu của 4  đáp án
                 String questionRow = dto.getQuestionsContent();
                 if (questionRow != null && !questionRow.isEmpty()) {
                     String[] question = questionRow.split(",");
                     for (int i = 0; i < question.length; i++) {
                         String questionText = question[i]; // lấy nội dung câu hỏi
+                        if (seenQuestions.contains(questionText)) {
+                            continue; // kiểm tra nếu đã có câu hỏi đó rồi thì bỏ qua
+                        }
+                        seenQuestions.add(questionText);// nếu chưa có câu hỏi đó rồi thì thêm vào
                         List<AnswersDto> subAnswers = new ArrayList<>(); // tạo danh sách đáp án cho mỗi câu hỏi
-                        int start = i * 4;  // Lấy 4 đáp án cho câu hỏi thứ i
+                        int start = questionIndex * 4;  // tính vị trị bắt đầu để  Lấy 4 đáp án cho câu hỏi thứ i
+                        if (start >= answers.size()) {
+                            System.out.println("⚠ Không đủ đáp án cho câu: " + questionText);
+                            continue;
+                        }
                         int end = Math.min(start + 4, answers.size()); // lấy tối đa 4 đáp án, Math.min tránh lỗi nếu không đủ 4 đáp án
                         for (int j = start; j < end; j++) {
                             subAnswers.add(answers.get(j));
                         }
-                        questions.add(new QuestionsDto(questionText, subAnswers));
+//
+                        questions.add(new QuestionsDto(questionText, subAnswers,responseDto.getImg()));
+                        questionIndex++; //  chỉ tăng chỉ số để tính 4 đáp án kế tiếp khi câu hỏi được thêm vào
+                    }
+                }
+                if ((questionRow == null || questionRow.isEmpty()) && responseDto.getImg() != null && !answers.isEmpty()) {
+                    int numberOfQuestions = answers.size() / 4;
+                    for (int i = 0; i < numberOfQuestions; i++) {
+                        List<AnswersDto> subAnswers = new ArrayList<>();
+                        int start = questionIndex * 4; // tính vị trị bắt đầu để  Lấy 4 đáp án cho câu hỏi thứ i
+                        if (start >= answers.size()) {
+                            System.out.println("⚠ Không đủ đáp án cho câu: " + questionIndex);
+                            continue;
+                        }
+                        int end = Math.min(start + 4, answers.size());
+                        for (int j = start; j < end; j++) {
+                            subAnswers.add(answers.get(j));
+                        }
+                        // Tạo câu hỏi chỉ với img, không gán content
+                        questions.add(new QuestionsDto(null, subAnswers, responseDto.getImg()));
+                        questionIndex++;
                     }
                 }
                 responseDto.setQuestions(questions);

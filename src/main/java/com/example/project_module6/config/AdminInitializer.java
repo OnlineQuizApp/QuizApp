@@ -23,6 +23,7 @@ public class AdminInitializer implements ApplicationRunner {
         if(userRepository.findByUsername("admin").isEmpty()){
             Users admin = new Users();
             admin.setUsername("admin");
+            admin.setName("admin");
             String rawPassword = "Dat2503@";
             String encodedPassword = passwordEncoder.encode(rawPassword);
             admin.setPassword(encodedPassword);

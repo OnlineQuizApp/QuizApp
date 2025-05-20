@@ -8,8 +8,10 @@ import org.springframework.data.domain.Pageable;
 public interface IExamsService {
     Page<Exams> getAlExams(Pageable pageable);
     Page<Exams> searchExamsByCategory(String category,Pageable pageable);
-    void addExams(ExamsDto examsDto);
+    void addExamsRandom(ExamsDto examsDto);
     boolean updateExams(int id,ExamsDto examsDto);
     boolean deleteExams(int id);
+    void addExams(ExamsDto examsDto);
+    void confirmExams(ExamsDto examsDto);
 
 }

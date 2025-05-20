@@ -6,4 +6,5 @@ import java.io.IOException;
 
 public interface ICloudinaryService {
     String uploadImage(MultipartFile file) throws IOException;
+    String uploadVideo(MultipartFile file) throws IOException;
 }

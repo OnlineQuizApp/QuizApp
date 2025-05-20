@@ -38,7 +38,7 @@ public class ExamsService implements IExamsService{
     }
 
     @Override
-    public void addExams(ExamsDto examsDto) {
+    public void addExamsRandom(ExamsDto examsDto) {
         Exams exams =new Exams();
         BeanUtils.copyProperties(examsDto,exams);
         examsRepository.save(exams);
@@ -110,5 +110,26 @@ public class ExamsService implements IExamsService{
             return true;
         }
         return false;
+    }
+
+    @Override
+    public void addExams(ExamsDto examsDto) {
+        Integer numberOfQuestions = examsDto.getNumberOfQuestions();
+        Integer countQuestions = questionsRepository.countQuestions(examsDto.getCategory());
+        if (countQuestions < numberOfQuestions) {
+            throw new IllegalArgumentException("Không đủ câu hỏi! Hiện chỉ có " + countQuestions + " câu.");
+        }else {
+            Exams exams =new Exams();
+            BeanUtils.copyProperties(examsDto,exams);
+            examsRepository.save(exams);
+        }
+    }
+
+    @Override
+    public void confirmExams(ExamsDto examsDto) {
+        Exams exams = examsRepository.findById(examsDto.getId());
+        if (exams!=null){
+            
+        }
     }
 }

@@ -41,9 +41,9 @@ public class ExamsController {
         return new ResponseEntity<>(exams, HttpStatus.OK);
     }
     @PostMapping("")
-    public ResponseEntity<?> createExams(@RequestBody ExamsDto examsDto){
+    public ResponseEntity<?> createExamsRandom(@RequestBody ExamsDto examsDto){
         try {
-            examsService.addExams(examsDto);
+            examsService.addExamsRandom(examsDto);
             return new ResponseEntity<>("Thêm mới  đề thi thành công! ",HttpStatus.OK);
         }catch (IllegalArgumentException ex){
             return ResponseEntity.badRequest().body(ex.getMessage());
@@ -68,7 +68,9 @@ public class ExamsController {
         }
     }
     @GetMapping("/{id}")
-    public ResponseEntity<Page<?>> detailExams(@PageableDefault(size = 1) @PathVariable("id")int id,Pageable pageable){
+    public ResponseEntity<Page<?>> detailExams(@PathVariable("id")int id,
+                                               @PageableDefault(size = 1)
+                                               Pageable pageable){
         Page<ExamsQuestionsResponseDto> examsQuestionsResponseDto = examsQuestionsService.detailExamsQuestions(id,pageable);
         if (examsQuestionsResponseDto!=null){
             return new ResponseEntity<>(examsQuestionsResponseDto,HttpStatus.OK);
