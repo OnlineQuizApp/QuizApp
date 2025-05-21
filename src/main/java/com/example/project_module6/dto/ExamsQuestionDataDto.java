@@ -10,6 +10,7 @@ public interface ExamsQuestionDataDto {
      String getCategory();
      int getNumberOfQuestions();
      String getImg();
+     String getVideo();
      Time getTestTime();
      String getAnswers();
      String getQuestionsContent();

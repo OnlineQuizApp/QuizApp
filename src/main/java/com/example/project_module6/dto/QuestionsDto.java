@@ -47,9 +47,10 @@
             this.examAnswers = examAnswers;
         }
 
-        public QuestionsDto(String content, List<AnswersDto> examAnswers, String img) {
+        public QuestionsDto(String content, List<AnswersDto> examAnswers, String img,String video) {
             this.content = content;
             this.examAnswers = examAnswers;
             this.img = img;
+            this.video = video;
         }
     }

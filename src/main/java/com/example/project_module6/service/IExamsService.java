@@ -11,9 +11,11 @@ public interface IExamsService {
     Page<Exams> getAlExams(Pageable pageable);
     Page<Exams> searchExamsByCategory(String category,Pageable pageable);
     void addExamsRandom(ExamsDto examsDto);
-    boolean updateExams(int id,ExamsDto examsDto);
+    Exams updateExamsRandom(int id,ExamsDto examsDto);
+
     boolean deleteExams(int id);
-    void addExams(ExamsDto examsDto);
+    Exams addExams(ExamsDto examsDto);
     void confirmExams(Integer examID, List<Integer> questionsId);
+    boolean updateExams(int id,ExamsDto examsDto,List<Integer> questionsId);
 
 }
