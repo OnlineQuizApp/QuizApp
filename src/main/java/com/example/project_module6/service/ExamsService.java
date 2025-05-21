@@ -1,14 +1,17 @@
 package com.example.project_module6.service;
 
+import com.example.project_module6.dto.ExamResponseDto;
 import com.example.project_module6.dto.ExamsDto;
 
 import com.example.project_module6.model.ExamQuestions;
 import com.example.project_module6.model.Exams;
 import com.example.project_module6.model.Questions;
 
+import com.example.project_module6.model.Results;
 import com.example.project_module6.repository.IExamsQuestionRepository;
 import com.example.project_module6.repository.IExamsRepository;
 import com.example.project_module6.repository.IQuestionsRepository;
+import com.example.project_module6.repository.IResultRepository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -17,7 +20,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -30,6 +35,8 @@ public class ExamsService implements IExamsService{
     private IQuestionsRepository questionsRepository;
     @Autowired
     private IExamsQuestionRepository examsQuestionRepository;
+    @Autowired
+    private IResultRepository resultRepository;
     @Override
     public Page<Exams> getAlExams(Pageable pageable) {
         return examsRepository.getAllExams(pageable);
@@ -171,5 +178,29 @@ public class ExamsService implements IExamsService{
            }
        }
        return false;
+    }
+
+    @Override
+    public List<ExamResponseDto> getAllExamsWithStatus(Integer userId, Pageable pageable) {
+        Page<Exams> exams = examsRepository.getAllExams(pageable);
+        List<ExamResponseDto> response = new ArrayList<>();
+
+        int index = pageable.getPageNumber() * pageable.getPageSize() + 1;
+
+        for (Exams exam : exams) {
+            Optional<Results> result = resultRepository.findByUserIdAndExamId(userId, exam.getId());
+
+            String status = result.isPresent() ? "Đã thi" : "Chưa thi";
+            String action = result.isPresent() ? "Xem kết quả" : "Làm bài thi";
+
+            response.add(new ExamResponseDto(exam.getId(),index++, exam.getTitle(), exam.getCategory(), status, action));
+        }
+
+        return response;
+    }
+
+    @Override
+    public int countBySoftDeleteFalse() {
+        return examsRepository.countBySoftDeleteFalse();
     }
 }

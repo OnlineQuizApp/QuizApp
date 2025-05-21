@@ -33,7 +33,7 @@ public interface IExamsRepository extends JpaRepository<Exams,Integer> {
 
     @Query(value = "select * from exams e where e.id = ?1",nativeQuery = true)
     Exams findById(int id);
-
+    int countBySoftDeleteFalse();
 
 
 

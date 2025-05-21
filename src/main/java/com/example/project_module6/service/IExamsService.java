@@ -1,5 +1,6 @@
 package com.example.project_module6.service;
 
+import com.example.project_module6.dto.ExamResponseDto;
 import com.example.project_module6.dto.ExamsDto;
 import com.example.project_module6.model.Exams;
 import org.springframework.data.domain.Page;
@@ -17,5 +18,6 @@ public interface IExamsService {
     Exams addExams(ExamsDto examsDto);
     void confirmExams(Integer examID, List<Integer> questionsId);
     boolean updateExams(int id,ExamsDto examsDto,List<Integer> questionsId);
-
+    List<ExamResponseDto> getAllExamsWithStatus(Integer userId, Pageable pageable);
+    int countBySoftDeleteFalse();
 }
