@@ -36,8 +36,11 @@ public class QuestionService implements IQuestionService {
     @Override
     public boolean createQuestions(QuestionsDto questionsDto) {
         Questions questions = new Questions();
-
         BeanUtils.copyProperties(questionsDto, questions);
+        if (questionsRepository.existsByContentIgnoreCase(
+                questionsDto.getContent().trim())) {
+            throw new RuntimeException("❌ Câu hỏi này đã được thêm");
+        }
         if (questionsDto.getContent()!=null){
             questions.setContent(questionsDto.getContent());
         }
@@ -70,6 +73,9 @@ public class QuestionService implements IQuestionService {
             Workbook workbook = WorkbookFactory.create(inputStream);
             Sheet sheet = workbook.getSheetAt(0);
             Questions currentQuestion = null;
+            int countQuestions=0;
+            int totalQuestions = 0;
+
             for (Row row : sheet) {
                 if (row.getRowNum() == 0) continue;
                 // Lấy ô chứa "Câu 1", "Câu 2", để biết bắt đầu câu hỏi mới (cột C – index 2)
@@ -81,14 +87,15 @@ public class QuestionService implements IQuestionService {
 
                 if (questionIndexCell != null && questionContentCell != null) {
                     // Tạo câu hỏi mới
-
                     String questionContent= questionContentCell.getStringCellValue().trim();
+                    totalQuestions++;
                     if (questionContent.isEmpty()){
                         continue;
                     }
-                    boolean questionCheck=questionsRepository.existsByContent(questionContent);
+                    boolean questionCheck=questionsRepository.existsByContentIgnoreCase(questionContent);
                     if (questionCheck){
                         currentQuestion=null;
+                        countQuestions++;
                         continue;
                     }
                     currentQuestion = new Questions();
@@ -135,11 +142,14 @@ public class QuestionService implements IQuestionService {
 
                 }
             }
+            int sumQuestions=totalQuestions-countQuestions;
             if (!hasNewQuestion) {
-                throw new RuntimeException("File này đã được thêm, không có câu hỏi mới nào.");
+                throw new RuntimeException("❌ File này đã được thêm, không có câu hỏi mới nào.");
+            }else if (countQuestions>0){
+                throw new RuntimeException("✅ Đã thêm thành công "+sumQuestions+"/"+totalQuestions+" câu vì có "+countQuestions+" câu trùng lặp");
             }
         } catch (IOException e) {
-            throw new RuntimeException("Lỗi khi xử lý file Excel: " + e.getMessage(), e);
+            throw new RuntimeException("❌ Lỗi khi xử lý file Excel: " + e.getMessage(), e);
         }
     }
 
@@ -157,6 +167,9 @@ public class QuestionService implements IQuestionService {
             if (questionsDto.getImg() != null) {
                 questions.setImg(questionsDto.getImg());
             }
+            if (questionsDto.getVideo() != null) {
+                questions.setVideo(questionsDto.getVideo());
+            }
             // 2. Gán lại đáp án mới từ DTO
             List<Answers> newAnswers = questionsDto.getAnswers().stream().map(a -> {
                 Answers answer = new Answers();
@@ -165,10 +178,8 @@ public class QuestionService implements IQuestionService {
                 answer.setQuestion(questions); // Liên kết lại câu hỏi
                 return answer;
             }).collect(Collectors.toList());
-
             // 3. Lưu câu hỏi trước (nếu cần cascade thì không cần bước này)
             questionsRepository.save(questions);
-
             // 4. Lưu đáp án mới
             answersRepository.saveAll(newAnswers);
             questionsRepository.save(questions);
@@ -210,6 +221,7 @@ public class QuestionService implements IQuestionService {
         questionDtoResponse.setId(questionDetailDtoResponse.getId());
         questionDtoResponse.setContent(questionDetailDtoResponse.getQuestionsContent());
         questionDtoResponse.setImg(questionDetailDtoResponse.getImg());
+        questionDtoResponse.setVideo(questionDetailDtoResponse.getVideo());
         Categorys categorys = new Categorys(questionDetailDtoResponse.getCategoryId(),questionDetailDtoResponse.getCategoryName());
         questionDtoResponse.setCategory(categorys);
         List<AnswersDto> answersList = new ArrayList<>();

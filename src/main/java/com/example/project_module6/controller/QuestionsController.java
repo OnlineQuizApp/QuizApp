@@ -71,7 +71,7 @@ public class QuestionsController {
             return new ResponseEntity<>("Thêm File Excel Thành Công! ", HttpStatus.OK);
         } catch (RuntimeException e) {
             // Lỗi do file không có câu hỏi mới
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("File này đã được thêm, không có câu hỏi mới nào.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             return new ResponseEntity<>("Lỗi khi xử lý file Excel: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -98,7 +98,10 @@ public class QuestionsController {
             questions.setContent(content);
             questionService.createQuestions(questions);
             return new ResponseEntity<>("Thêm File hình ảnh Thành Công! ", HttpStatus.OK);
-        } catch (Exception e) {
+        }catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+        catch (Exception e) {
             System.out.println("answers raw JSON: " + answers);
             return new ResponseEntity<>("Lỗi khi xử lý hình ảnh: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -107,8 +110,7 @@ public class QuestionsController {
     public ResponseEntity<?> uploadVideo( @RequestParam ("file") MultipartFile file,
                                            @RequestParam ("categoryId") int categoryId,
                                            @RequestParam ("answers") String answers,
-                                           @RequestParam ("content") String content
-                                          ) {
+                                           @RequestParam ("content") String content) {
         try {
             QuestionsDto questions = new QuestionsDto();
             String video = cloudinaryService.uploadVideo(file);
@@ -124,7 +126,10 @@ public class QuestionsController {
             questions.setContent(content);
             questionService.createQuestions(questions);
             return new ResponseEntity<>("Thêm Video Thành Công! ", HttpStatus.OK);
-        } catch (Exception e) {
+        }catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+        catch (Exception e) {
             System.out.println("answers raw JSON: " + answers);
             return new ResponseEntity<>("Lỗi khi xử lý hình ảnh: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -137,26 +142,38 @@ public class QuestionsController {
             // Trả về danh sách lỗi
             return ResponseEntity.badRequest().body(bindingResult.getAllErrors());
         }
-        questionService.createQuestions(questionsDto);
-        return new ResponseEntity<>("Thêm Mới Câu Hỏi  Thành Công!", HttpStatus.OK);
+        try {
+            questionService.createQuestions(questionsDto);
+            return new ResponseEntity<>("Thêm Mới Câu Hỏi Thành Công!", HttpStatus.OK);
+        }catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateQuestions(@PathVariable("id") int id,
                                              @RequestParam (value = "file", required = false) MultipartFile file,
+                                             @RequestParam (value = "typeFile", required = false) String typeFile,
                                              @RequestParam ("categoryId") int categoryId,
                                              @RequestParam ("answers") String answers,
                                              @RequestParam ("content") String content) {
 
         Questions questions = questionService.findById(id);
         try {
-
             if (questions != null) {
                 QuestionsDto questionsDto = new QuestionsDto();
-                if (file != null && !file.isEmpty()) {
-                    String imgUrl = cloudinaryService.uploadImage(file);
-                    questionsDto.setImg(imgUrl);
+                if (file != null && typeFile != null) {
+                    if ("image".equals(typeFile)) {
+                        String imgUrl = cloudinaryService.uploadImage(file);
+                        questionsDto.setImg(imgUrl);
+                    }else if  ("video".equals(typeFile)) {
+                        String video = cloudinaryService.uploadVideo(file);
+                        questionsDto.setVideo(video);
+                    }else {
+                        return new ResponseEntity<>("Không có file phù hợp", HttpStatus.BAD_REQUEST);
+                    }
                 }
+
                 ObjectMapper mapper = new ObjectMapper();
                 List<Answers> answersList = mapper.readValue(  // part từ chuỗi JSON sang đối tượng
                         answers,
