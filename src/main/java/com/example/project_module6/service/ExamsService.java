@@ -1,15 +1,16 @@
 package com.example.project_module6.service;
 
 import com.example.project_module6.dto.ExamsDto;
-import com.example.project_module6.dto.QuestionsDto;
+
 import com.example.project_module6.model.ExamQuestions;
 import com.example.project_module6.model.Exams;
 import com.example.project_module6.model.Questions;
-import com.example.project_module6.repository.IAnswersRepository;
+
 import com.example.project_module6.repository.IExamsQuestionRepository;
 import com.example.project_module6.repository.IExamsRepository;
 import com.example.project_module6.repository.IQuestionsRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -17,7 +18,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @Transactional
 public class ExamsService implements IExamsService{
@@ -63,7 +66,7 @@ public class ExamsService implements IExamsService{
     }
     @Transactional
     @Override
-    public boolean updateExams(int id, ExamsDto examsDto) {
+    public Exams updateExamsRandom(int id, ExamsDto examsDto) {
        Exams exams = examsRepository.findById(id);
         System.out.println("Tìm thấy exam: " + exams);
        if (exams!=null){
@@ -79,7 +82,7 @@ public class ExamsService implements IExamsService{
                exams.setTestTime(examsDto.getTestTime());
                exams.setNumberOfQuestions(examsDto.getNumberOfQuestions());
                exams.setSoftDelete(examsDto.isSoftDelete());
-               examsQuestionRepository.deleteByExamId(exams.getId()); /// xóa câu hỏi cũ trong bảng trung gian
+               examsQuestionRepository.deleteByExamId(exams.getId());// xóa câu hỏi cũ trong bảng trung gian
                System.out.println("Xóa các câu hỏi cũ thành công.");
                List<Questions> questionsList = questionsRepository.findRandomQuestions(exams.getCategory(),numberOfQuestions);
                System.out.println("Số câu hỏi mới random được: " + questionsList.size());
@@ -94,10 +97,10 @@ public class ExamsService implements IExamsService{
                }
 
                examsRepository.save(exams);
-               return true;
+              return exams;
            }
        }
-       return false;
+       return null;
     }
 
     @Override
@@ -113,7 +116,7 @@ public class ExamsService implements IExamsService{
     }
 
     @Override
-    public void addExams(ExamsDto examsDto) {
+    public Exams addExams(ExamsDto examsDto) {
         Integer numberOfQuestions = examsDto.getNumberOfQuestions();
         Integer countQuestions = questionsRepository.countQuestions(examsDto.getCategory());
         if (countQuestions < numberOfQuestions) {
@@ -122,26 +125,51 @@ public class ExamsService implements IExamsService{
             Exams exams =new Exams();
             BeanUtils.copyProperties(examsDto,exams);
             examsRepository.save(exams);
+            return exams;
+        }
+
+    }
+
+    @Override
+    @Transactional
+    public void confirmExams(Integer examId, List<Integer> questionsId) {
+        Exams exams = examsRepository.findById(examId).orElse(null);
+        if (exams!=null){
+            List<Questions> questionsList = questionsRepository.findQuestionsByCategory(exams.getCategory());
+            if (!questionsList.isEmpty()&&!questionsId.isEmpty()){
+                List<Questions> selectQuestions= questionsList.stream()
+                        .filter(q ->questionsId.contains(q.getId()))//lọc ra những id câu hỏi nào trùng với danh sách id câu hỏi thêm vào đề
+                        .collect(Collectors.toList());
+                int numberOfQuestions=exams.getNumberOfQuestions();
+                if (selectQuestions.size()!=numberOfQuestions){
+                    throw new IllegalArgumentException("Số câu hỏi chọn không trùng với số lượng câu hỏi của đề yêu cầu!");
+                }
+                examsQuestionRepository.deleteByExamId(examId);
+                double score = 10.0/numberOfQuestions;
+                for (Questions newQuestions:selectQuestions){
+                    ExamQuestions examQuestions =  new ExamQuestions();
+                       examQuestions.setExam(exams);
+                       examQuestions.setQuestion(newQuestions);
+                       examQuestions.setScore(score);
+                       examsQuestionRepository.save(examQuestions);
+                }
+            }
         }
     }
 
     @Override
-    public void confirmExams(Integer examID, List<Integer> questionsId) {
-        Exams exams = examsRepository.findById(examID).orElse(null);
-        if (exams!=null){
-            List<Questions> questionsList = questionsRepository.findQuestionsByCategory(exams.getCategory());
-            for (Integer question:questionsId){
-//                Questions questions = questionsList
-            }
-            double numberOfQuestions=exams.getNumberOfQuestions();
-            double score = 10.0/numberOfQuestions;
-            for (Questions newQuestions:questionsList){
-                ExamQuestions examQuestions =  new ExamQuestions();
-                examQuestions.setExam(exams);
-                examQuestions.setQuestion(newQuestions);
-                examQuestions.setScore(score);
-                examsQuestionRepository.save(examQuestions);
-            }
-        }
+    public boolean updateExams(int id, ExamsDto examsDto, List<Integer> questionsId) {
+       Exams exams = examsRepository.findById(id);
+       if (exams!=null){
+           List<Questions> questionsList=questionsRepository.findQuestionsByCategory(exams.getCategory());
+           if (!questionsList.isEmpty()&&!questionsId.isEmpty()){
+               List<Questions> questionsSelect=questionsList.stream().filter(q->questionsId.contains(q.getId())).collect(Collectors.toList());
+               int numberOfQuestions=exams.getNumberOfQuestions();
+               if (questionsSelect.size()!=numberOfQuestions){
+                   throw new IllegalArgumentException("Số câu hỏi chọn không trùng với số lượng câu hỏi của đề yêu cầu!");
+               }
+           }
+       }
+       return false;
     }
 }

@@ -21,6 +21,7 @@ public class ExamsQuestionsResponseDto {
     private String title;
     private String category;
     private String img;
+    private String video;
     private int numberQuestions;
     private Time testTime;
     private List<QuestionsDto> questions;

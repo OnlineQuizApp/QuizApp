@@ -6,8 +6,12 @@ import com.example.project_module6.dto.ExamsQuestionDataDto;
 
 import com.example.project_module6.dto.ExamsQuestionsResponseDto;
 import com.example.project_module6.model.Exams;
+import com.example.project_module6.model.Questions;
+import com.example.project_module6.repository.IExamsRepository;
+import com.example.project_module6.repository.IQuestionsRepository;
 import com.example.project_module6.service.IExamsQuestionsService;
 import com.example.project_module6.service.IExamsService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @CrossOrigin(value = "*")
 @RequestMapping("/api/exams")
@@ -25,7 +30,11 @@ public class ExamsController {
     @Autowired
     private IExamsService examsService;
     @Autowired
+    private IExamsRepository examsRepository;
+    @Autowired
     private IExamsQuestionsService examsQuestionsService;
+    @Autowired
+    private IQuestionsRepository questionsRepository;
     @GetMapping("")
     public ResponseEntity<Page<?>> getAllExams(@PageableDefault(size = 5)Pageable pageable,
                                                @RequestParam(defaultValue = "",required = false) String category){
@@ -50,10 +59,10 @@ public class ExamsController {
         }
     }
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateExams(@PathVariable("id")int id,@RequestBody ExamsDto examsDto){
+    public ResponseEntity<?> updateExamsRandom(@PathVariable("id")int id,@RequestBody ExamsDto examsDto){
         try {
-           examsService.updateExams(id,examsDto);
-            return new ResponseEntity<>("Chỉnh sửa đề thi thành công! ",HttpStatus.OK);
+           Exams exams = examsService.updateExamsRandom(id,examsDto);
+            return new ResponseEntity<>(exams,HttpStatus.OK);
         }catch (IllegalArgumentException ex){
             return ResponseEntity.badRequest().body(ex.getMessage());
         }
@@ -77,7 +86,6 @@ public class ExamsController {
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
-
     @GetMapping("/detail/{id}")
     public ResponseEntity<List<?>> detailExams1(@PageableDefault(size = 1) @PathVariable("id")int id){
         List<ExamsQuestionDataDto> examsQuestionsResponseDto = examsQuestionsService.getExamsQuestions(id);
@@ -85,5 +93,39 @@ public class ExamsController {
             return new ResponseEntity<>(examsQuestionsResponseDto,HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+    @PostMapping("/create")
+    public ResponseEntity<?> createExams(@RequestBody ExamsDto examsDto){
+        try {
+            Exams exams = examsService.addExams(examsDto);
+            System.out.println("ID exams: "+exams.getId());
+            return new ResponseEntity<>(exams.getId(),HttpStatus.OK);
+        }catch (IllegalArgumentException ex){
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
+    }
+    @PostMapping("/create-confirm/{examId}")
+    public ResponseEntity<?> confirmExams(@PathVariable("examId") Integer examId,
+                                          @RequestBody
+                                          List<Integer> selectedQuestionsId){
+        try {
+            System.out.println("danh sách câu hỏi: "+selectedQuestionsId);
+            examsService.confirmExams(examId,selectedQuestionsId);
+            return new ResponseEntity<>("Xác nhận tạo đề thi và tạo câu hỏi thành công.", HttpStatus.OK);
+        }catch (IllegalArgumentException ex){
+            System.out.println("Bắt được lỗi: " + ex.getMessage());
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
+    }
+    @GetMapping("/findById/{id}")
+    public ResponseEntity<?> findById(@PathVariable int id) {
+        Exams questions = examsRepository.findById(id);
+        return ResponseEntity.ok(questions);
+    }
+
+    @GetMapping("/questions-by-category/{category}")
+    public ResponseEntity<?> getQuestionsByCategory(@PathVariable String category) {
+        List<Questions> questions = questionsRepository.findQuestionsByCategory(category);
+        return ResponseEntity.ok(questions);
     }
 }

@@ -39,13 +39,14 @@ public class ExamsQuestionsService implements IExamsQuestionsService {
                 if (dto.getImg()!=null){
                     responseDto.setImg(dto.getImg());
                 }
-                System.out.println("Img:--------------"+responseDto.getImg());
+                if (dto.getVideo()!=null){
+                    responseDto.setVideo(dto.getVideo());
+                }
                 List<AnswersDto> answers = new ArrayList<>();
                 String answersRaw = dto.getAnswers();
                 if (answersRaw != null && !answersRaw.isEmpty()) {
                     String[] a = answersRaw.split(",");
                     for (String answersDto : a) {
-                        System.out.println("Ansers:------------"+answersDto);
                         if (answersDto.contains("-")) {
                             String[] parts = answersDto.split("-");
                             if (parts.length == 2) {
@@ -71,14 +72,14 @@ public class ExamsQuestionsService implements IExamsQuestionsService {
                     String[] question = questionRow.split(",");
                     for (int i = 0; i < question.length; i++) {
                         String questionText = question[i]; // lấy nội dung câu hỏi
-                        if (seenQuestions.contains(questionText)) {
+                        if (seenQuestions.contains(questionText)&&seenQuestions.size()==1) {
                             continue; // kiểm tra nếu đã có câu hỏi đó rồi thì bỏ qua
                         }
                         seenQuestions.add(questionText);// nếu chưa có câu hỏi đó rồi thì thêm vào
                         List<AnswersDto> subAnswers = new ArrayList<>(); // tạo danh sách đáp án cho mỗi câu hỏi
                         int start = questionIndex * 4;  // tính vị trị bắt đầu để  Lấy 4 đáp án cho câu hỏi thứ i
                         if (start >= answers.size()) {
-                            System.out.println("⚠ Không đủ đáp án cho câu: " + questionText);
+                            System.out.println("Không đủ đáp án cho câu: " + questionText);
                             continue;
                         }
                         int end = Math.min(start + 4, answers.size()); // lấy tối đa 4 đáp án, Math.min tránh lỗi nếu không đủ 4 đáp án
@@ -86,17 +87,17 @@ public class ExamsQuestionsService implements IExamsQuestionsService {
                             subAnswers.add(answers.get(j));
                         }
 //
-                        questions.add(new QuestionsDto(questionText, subAnswers,responseDto.getImg()));
+                        questions.add(new QuestionsDto(questionText, subAnswers,responseDto.getImg(),responseDto.getVideo()));
                         questionIndex++; //  chỉ tăng chỉ số để tính 4 đáp án kế tiếp khi câu hỏi được thêm vào
                     }
                 }
                 if ((questionRow == null || questionRow.isEmpty()) && responseDto.getImg() != null && !answers.isEmpty()) {
-                    int numberOfQuestions = answers.size() / 4;
+                    int numberOfQuestions = (int) Math.ceil(answers.size() / 4.0);
                     for (int i = 0; i < numberOfQuestions; i++) {
                         List<AnswersDto> subAnswers = new ArrayList<>();
                         int start = questionIndex * 4; // tính vị trị bắt đầu để  Lấy 4 đáp án cho câu hỏi thứ i
                         if (start >= answers.size()) {
-                            System.out.println("⚠ Không đủ đáp án cho câu: " + questionIndex);
+                            System.out.println(" Không đủ đáp án cho câu: " + questionIndex);
                             continue;
                         }
                         int end = Math.min(start + 4, answers.size());
@@ -104,7 +105,7 @@ public class ExamsQuestionsService implements IExamsQuestionsService {
                             subAnswers.add(answers.get(j));
                         }
                         // Tạo câu hỏi chỉ với img, không gán content
-                        questions.add(new QuestionsDto(null, subAnswers, responseDto.getImg()));
+                        questions.add(new QuestionsDto(null, subAnswers, responseDto.getImg(),responseDto.getVideo()));
                         questionIndex++;
                     }
                 }
