@@ -15,6 +15,7 @@ public class QuestionDtoResponse {
     private int id;
     private String content;
     private String img;
+    private String video;
     private List<AnswersDto> answers;
     private Categorys category;
     private boolean softDelete=false;

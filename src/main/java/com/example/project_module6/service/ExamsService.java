@@ -126,10 +126,22 @@ public class ExamsService implements IExamsService{
     }
 
     @Override
-    public void confirmExams(ExamsDto examsDto) {
-        Exams exams = examsRepository.findById(examsDto.getId());
+    public void confirmExams(Integer examID, List<Integer> questionsId) {
+        Exams exams = examsRepository.findById(examID).orElse(null);
         if (exams!=null){
-            
+            List<Questions> questionsList = questionsRepository.findQuestionsByCategory(exams.getCategory());
+            for (Integer question:questionsId){
+//                Questions questions = questionsList
+            }
+            double numberOfQuestions=exams.getNumberOfQuestions();
+            double score = 10.0/numberOfQuestions;
+            for (Questions newQuestions:questionsList){
+                ExamQuestions examQuestions =  new ExamQuestions();
+                examQuestions.setExam(exams);
+                examQuestions.setQuestion(newQuestions);
+                examQuestions.setScore(score);
+                examsQuestionRepository.save(examQuestions);
+            }
         }
     }
 }

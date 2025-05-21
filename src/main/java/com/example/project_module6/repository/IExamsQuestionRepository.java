@@ -3,6 +3,7 @@ package com.example.project_module6.repository;
 import com.example.project_module6.dto.ExamsQuestionDataDto;
 import com.example.project_module6.dto.ExamsQuestionsResponseDto;
 import com.example.project_module6.model.ExamQuestions;
+import com.example.project_module6.model.Exams;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -72,4 +73,6 @@ public interface IExamsQuestionRepository extends JpaRepository<ExamQuestions,In
             GROUP BY q.id
             """,nativeQuery = true)
     List<ExamsQuestionDataDto> getExamsQuestions(int id);
+
+    boolean existsByExam(Exams exam);
 }

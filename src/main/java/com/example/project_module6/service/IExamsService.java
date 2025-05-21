@@ -5,6 +5,8 @@ import com.example.project_module6.model.Exams;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
+
 public interface IExamsService {
     Page<Exams> getAlExams(Pageable pageable);
     Page<Exams> searchExamsByCategory(String category,Pageable pageable);
@@ -12,6 +14,6 @@ public interface IExamsService {
     boolean updateExams(int id,ExamsDto examsDto);
     boolean deleteExams(int id);
     void addExams(ExamsDto examsDto);
-    void confirmExams(ExamsDto examsDto);
+    void confirmExams(Integer examID, List<Integer> questionsId);
 
 }

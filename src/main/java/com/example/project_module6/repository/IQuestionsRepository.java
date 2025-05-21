@@ -34,6 +34,7 @@ public interface IQuestionsRepository extends JpaRepository<Questions,Integer> {
             SELECT q.id,
             q.content AS questionsContent,
             q.img,
+            q.video,
              q.category_id as categoryId,
             c.name as categoryName,
             group_concat(a.id) as answersIds,
@@ -64,7 +65,16 @@ public interface IQuestionsRepository extends JpaRepository<Questions,Integer> {
            where c.name like ?1 and q.soft_delete=false      
                  """,nativeQuery = true)
     Integer countQuestions(String category);
+    boolean existsByContentIgnoreCase(String content);
 
-    boolean existsByContent(String content);
+    boolean existsByContentIgnoreCaseAndImgAndVideo(String content, String img, String video);
+    @Query(value = """
+            SELECT q.*
+                   FROM questions q
+                   JOIN categorys c ON q.category_id = c.id
+                   WHERE c.name like ?1
+                   """,nativeQuery = true)
+    List<Questions> findQuestionsByCategory(String category);
+
 
 }

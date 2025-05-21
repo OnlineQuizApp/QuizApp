@@ -4,6 +4,7 @@ public interface QuestionDetailDataDto {
     int getId();
     String getQuestionsContent();
     String getImg();
+    String getVideo();
     int getCategoryId();
     String getCategoryName();
     String getAnswersIds();
