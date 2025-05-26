@@ -11,7 +11,7 @@ public interface ExamsQuestionDataDto {
      int getNumberOfQuestions();
      String getImg();
      String getVideo();
-     Time getTestTime();
+     String getTestTime();
      String getAnswers();
      String getQuestionsContent();
 

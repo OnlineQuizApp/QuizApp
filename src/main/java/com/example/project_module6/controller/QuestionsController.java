@@ -21,9 +21,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.util.List;
+
 
 @Slf4j
 @RestController
@@ -47,10 +47,10 @@ public class QuestionsController {
         if (content != null && !content.trim().isEmpty()) {
             questions = questionService.searchQuestionByQuestionContent(content, pageable);
             System.out.println("------search-content---------" + questions);
-        } else if (category!=null &&!category.trim().isEmpty()){
-            questions = questionService.searchQuestionByCategory(category,pageable);
+        } else if (category != null && !category.trim().isEmpty()) {
+            questions = questionService.searchQuestionByCategory(category, pageable);
             System.out.println("-------search-category--------" + questions);
-        }else {
+        } else {
             questions = questionService.findAllQuestions(pageable);
             System.out.println("-------findAll--------" + questions);
         }
@@ -78,11 +78,11 @@ public class QuestionsController {
     }
 
     @PostMapping(value = "/upload-file-img", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> uploadFileImg(@RequestParam ("file") MultipartFile file,
-                                           @RequestParam ("categoryId") int categoryId,
-                                           @RequestParam ("answers") String answers,
-                                           @RequestParam ("content") String content
-                                           ) {
+    public ResponseEntity<?> uploadFileImg(@RequestParam("file") MultipartFile file,
+                                           @RequestParam("categoryId") int categoryId,
+                                           @RequestParam("answers") String answers,
+                                           @RequestParam("content") String content
+    ) {
         try {
             QuestionsDto questions = new QuestionsDto();
             String img = cloudinaryService.uploadImage(file);
@@ -98,19 +98,19 @@ public class QuestionsController {
             questions.setContent(content);
             questionService.createQuestions(questions);
             return new ResponseEntity<>("Thêm File hình ảnh Thành Công! ", HttpStatus.OK);
-        }catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("answers raw JSON: " + answers);
             return new ResponseEntity<>("Lỗi khi xử lý hình ảnh: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     @PostMapping(value = "/upload-video", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> uploadVideo( @RequestParam ("file") MultipartFile file,
-                                           @RequestParam ("categoryId") int categoryId,
-                                           @RequestParam ("answers") String answers,
-                                           @RequestParam ("content") String content) {
+    public ResponseEntity<?> uploadVideo(@RequestParam("file") MultipartFile file,
+                                         @RequestParam("categoryId") int categoryId,
+                                         @RequestParam("answers") String answers,
+                                         @RequestParam("content") String content) {
         try {
             QuestionsDto questions = new QuestionsDto();
             String video = cloudinaryService.uploadVideo(file);
@@ -126,10 +126,9 @@ public class QuestionsController {
             questions.setContent(content);
             questionService.createQuestions(questions);
             return new ResponseEntity<>("Thêm Video Thành Công! ", HttpStatus.OK);
-        }catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("answers raw JSON: " + answers);
             return new ResponseEntity<>("Lỗi khi xử lý hình ảnh: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -137,7 +136,7 @@ public class QuestionsController {
 
 
     @PostMapping("")
-    public ResponseEntity<?> createQuestions(@Valid @RequestBody QuestionsDto questionsDto,BindingResult bindingResult ) {
+    public ResponseEntity<?> createQuestions(@Valid @RequestBody QuestionsDto questionsDto, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             // Trả về danh sách lỗi
             return ResponseEntity.badRequest().body(bindingResult.getAllErrors());
@@ -145,18 +144,18 @@ public class QuestionsController {
         try {
             questionService.createQuestions(questionsDto);
             return new ResponseEntity<>("Thêm Mới Câu Hỏi Thành Công!", HttpStatus.OK);
-        }catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateQuestions(@PathVariable("id") int id,
-                                             @RequestParam (value = "file", required = false) MultipartFile file,
-                                             @RequestParam (value = "typeFile", required = false) String typeFile,
-                                             @RequestParam ("categoryId") int categoryId,
-                                             @RequestParam ("answers") String answers,
-                                             @RequestParam ("content") String content) {
+                                             @RequestParam(value = "file", required = false) MultipartFile file,
+                                             @RequestParam(value = "typeFile", required = false) String typeFile,
+                                             @RequestParam("categoryId") int categoryId,
+                                             @RequestParam("answers") String answers,
+                                             @RequestParam("content") String content) {
 
         Questions questions = questionService.findById(id);
         try {
@@ -166,10 +165,10 @@ public class QuestionsController {
                     if ("image".equals(typeFile)) {
                         String imgUrl = cloudinaryService.uploadImage(file);
                         questionsDto.setImg(imgUrl);
-                    }else if  ("video".equals(typeFile)) {
+                    } else if ("video".equals(typeFile)) {
                         String video = cloudinaryService.uploadVideo(file);
                         questionsDto.setVideo(video);
-                    }else {
+                    } else {
                         return new ResponseEntity<>("Không có file phù hợp", HttpStatus.BAD_REQUEST);
                     }
                 }

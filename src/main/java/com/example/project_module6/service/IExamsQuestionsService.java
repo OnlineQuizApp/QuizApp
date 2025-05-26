@@ -9,5 +9,7 @@ import java.util.List;
 
 public interface IExamsQuestionsService {
    Page<ExamsQuestionsResponseDto> detailExamsQuestions(int id, Pageable pageable);
+   List<ExamsQuestionsResponseDto> detailExamsQuestionsUpdate(int id);
    List<ExamsQuestionDataDto> getExamsQuestions(int id);
+
 }

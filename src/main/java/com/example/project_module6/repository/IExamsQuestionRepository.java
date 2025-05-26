@@ -15,7 +15,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface IExamsQuestionRepository extends JpaRepository<ExamQuestions,Integer> {
+public interface IExamsQuestionRepository extends JpaRepository<ExamQuestions, Integer> {
     @Modifying
     @Transactional
     @Query(value = "delete  from exam_questions eq  where exam_id=?1",
@@ -33,22 +33,41 @@ public interface IExamsQuestionRepository extends JpaRepository<ExamQuestions,In
             q.img as img,
             q.video as video,
             group_concat(q.content) as questionsContent,
-             group_concat(concat(a.content,"-",a.correct)) AS answers
+            group_concat(concat(a.content,"-",a.correct)) AS answers
             from exam_questions eq
             join exams e on eq.exam_id=e.id 
             join questions q on q.id=eq.question_id
             join answers a on a.question_id=q.id  where e.id=?1
             GROUP BY q.id
-                   """,
-           countQuery = """
-           select count(DISTINCT q.id)
-           from exam_questions eq
-           join exams e on eq.exam_id=e.id
-           join questions q on q.id=eq.question_id
-           join answers a on a.question_id=q.id  
-           where e.id=?1
-            """,nativeQuery = true)
+            """,
+            countQuery = """
+                    select count(DISTINCT q.id)
+                    from exam_questions eq
+                    join exams e on eq.exam_id=e.id
+                    join questions q on q.id=eq.question_id
+                    join answers a on a.question_id=q.id  
+                    where e.id=?1
+                    """, nativeQuery = true)
     Page<ExamsQuestionDataDto> detailExamsQuestions(int id, Pageable pageable);
+
+    @Query(value = """
+            select e.id as examsId,
+              e.title  as title,
+              e.category as category,
+              e.number_of_questions  as numberOfQuestions,
+              e.test_time as testTime,
+              q.id as questionsId,
+              q.img as img,
+              q.video as video,
+              group_concat(q.content) as questionsContent,
+              group_concat(concat(a.content,"-",a.correct)) AS answers
+              from exam_questions eq
+              join exams e on eq.exam_id=e.id 
+              join questions q on q.id=eq.question_id
+              join answers a on a.question_id=q.id  where e.id=?1
+              GROUP BY q.id
+            """, nativeQuery = true)
+    List<ExamsQuestionDataDto> detailExamsQuestionsUpdate(int id);
 
     @Query(value = """
             select e.id,
@@ -65,8 +84,10 @@ public interface IExamsQuestionRepository extends JpaRepository<ExamQuestions,In
             join questions q on q.id=eq.question_id\s
             join answers a on a.question_id=q.id  where e.id=?1
             GROUP BY q.id
-            """,nativeQuery = true)
+            """, nativeQuery = true)
     List<ExamsQuestionDataDto> getExamsQuestions(int id);
 
     boolean existsByExam(Exams exam);
+
+    List<ExamQuestions> findByExam_Id(int examId);
 }
