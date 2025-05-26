@@ -1,28 +1,24 @@
 package com.example.project_module6.model;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalTime;
-import java.util.List;
+import java.util.Date;
 
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class Exams {
+@Table(name = "exam_sets")
+public class ExamSets {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private String title;
-    private String category;
-    @Column(name = "number_of_questions")
-    private int numberOfQuestions;
-    @Column(name = "test_time")
-    private String testTime;
+    private String name;
+    @Column(name = "creation_date")
+    private Date creationDate;
     @Column(name = "soft_delete")
     private boolean softDelete=false;
 

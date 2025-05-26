@@ -58,6 +58,14 @@ public class SecurityConfig {
                                 "/api/user/reset-password","/api/questions/**","/api/category/**","/api/exams/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/questions/upload-file-img","/api/questions/upload-file-img/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
+
+                        .requestMatchers("/api/exam-set/create/confirm/**").hasRole("ADMIN") // Thêm dòng này
+                        .requestMatchers(HttpMethod.POST, "/api/exam-set/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/exam-set/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/exam-set/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/exam-set/**").hasAuthority("ROLE_ADMIN")
+
                         .requestMatchers("/api/user/me","/api/user/update","/api/user/change-password").hasAnyRole("ADMIN","USER")
                         .anyRequest().authenticated()
                 )

@@ -23,7 +23,8 @@ public class ExamsQuestionsResponseDto {
     private String img;
     private String video;
     private int numberQuestions;
-    private Time testTime;
+    private String testTime;
     private List<QuestionsDto> questions;
+
 
 }

@@ -47,6 +47,13 @@
             this.examAnswers = examAnswers;
         }
 
+        public QuestionsDto(int id,String content, List<AnswersDto> examAnswers, String img,String video) {
+            this.id = id;
+            this.content = content;
+            this.examAnswers = examAnswers;
+            this.img = img;
+            this.video = video;
+        }
         public QuestionsDto(String content, List<AnswersDto> examAnswers, String img,String video) {
             this.content = content;
             this.examAnswers = examAnswers;

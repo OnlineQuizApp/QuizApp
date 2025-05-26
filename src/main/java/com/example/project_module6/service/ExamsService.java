@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -48,19 +49,31 @@ public class ExamsService implements IExamsService{
     }
 
     @Override
+    public Page<Exams> searchExamsByTitle(String title, Pageable pageable) {
+        return examsRepository.searchExamsByTitle("%"+title+"%",pageable);
+    }
+
+    @Override
     public void addExamsRandom(ExamsDto examsDto) {
         Exams exams =new Exams();
         BeanUtils.copyProperties(examsDto,exams);
+        List<Exams> exams1 = examsRepository.getAllExams();
+        for (Exams exams2 :exams1){
+            if (exams.getTitle().equals(exams2.getTitle())&&exams.getCategory().equals(exams2.getCategory())){
+                throw new IllegalArgumentException("Đề thi này đã có trong hệ thống");
+            }
+        }
         examsRepository.save(exams);
         Integer numberOfQuestions = examsDto.getNumberOfQuestions();
         Integer countQuestions = questionsRepository.countQuestions(exams.getCategory());
         if (countQuestions < numberOfQuestions) {
-            throw new IllegalArgumentException("Không đủ câu hỏi! Hiện chỉ có " + countQuestions + " câu.");
+            throw new IllegalArgumentException("Không đủ câu hỏi cho danh mục bạn chọn ! Hiện chỉ có " + countQuestions + " câu cho danh mục đó");
         }else {
             List<Questions> questions = questionsRepository.findRandomQuestions(exams.getCategory(),numberOfQuestions);
             if (!questions.isEmpty()){
                 double score = 10.0/numberOfQuestions;
                 for (Questions question : questions){
+
                     ExamQuestions examQuestions = new ExamQuestions();
                     examQuestions.setQuestion(question);
                     examQuestions.setExam(exams);
@@ -75,24 +88,26 @@ public class ExamsService implements IExamsService{
     @Override
     public Exams updateExamsRandom(int id, ExamsDto examsDto) {
        Exams exams = examsRepository.findById(id);
-        System.out.println("Tìm thấy exam: " + exams);
        if (exams!=null){
            Integer numberOfQuestions = examsDto.getNumberOfQuestions();
-
            Integer countQuestions = questionsRepository.countQuestions(exams.getCategory());
            System.out.println("Số lượng câu hỏi hiện có: " + countQuestions);
            if (countQuestions<numberOfQuestions){
-               throw new IllegalArgumentException("Không đủ câu hỏi! Hiện chỉ có " + countQuestions + " câu.");
+               throw new IllegalArgumentException("Không đủ câu hỏi cho danh mục bạn chọn ! Hiện chỉ có " + countQuestions + " câu cho danh mục đó");
            }else {
+               List<Exams> exams1 = examsRepository.getAllExams();
+               for (Exams exams2 :exams1){
+                   if (examsDto.getTitle().equals(exams2.getTitle())&&examsDto.getCategory().equals(exams2.getCategory())){
+                       throw new IllegalArgumentException("Đề thi này đã có trong hệ thống");
+                   }
+               }
                exams.setCategory(examsDto.getCategory());
                exams.setTitle(examsDto.getTitle());
                exams.setTestTime(examsDto.getTestTime());
                exams.setNumberOfQuestions(examsDto.getNumberOfQuestions());
                exams.setSoftDelete(examsDto.isSoftDelete());
                examsQuestionRepository.deleteByExamId(exams.getId());// xóa câu hỏi cũ trong bảng trung gian
-               System.out.println("Xóa các câu hỏi cũ thành công.");
                List<Questions> questionsList = questionsRepository.findRandomQuestions(exams.getCategory(),numberOfQuestions);
-               System.out.println("Số câu hỏi mới random được: " + questionsList.size());
                double score = 10.0/numberOfQuestions;
                for (Questions questions:questionsList){
                    ExamQuestions examQuestions =  new ExamQuestions();
@@ -100,9 +115,7 @@ public class ExamsService implements IExamsService{
                    examQuestions.setQuestion(questions);
                    examQuestions.setScore(score);
                    examsQuestionRepository.save(examQuestions);
-                   System.out.println("Đã lưu exam và exam_questions mới.");
                }
-
                examsRepository.save(exams);
               return exams;
            }
@@ -127,8 +140,14 @@ public class ExamsService implements IExamsService{
         Integer numberOfQuestions = examsDto.getNumberOfQuestions();
         Integer countQuestions = questionsRepository.countQuestions(examsDto.getCategory());
         if (countQuestions < numberOfQuestions) {
-            throw new IllegalArgumentException("Không đủ câu hỏi! Hiện chỉ có " + countQuestions + " câu.");
-        }else {
+            throw new IllegalArgumentException("Không đủ câu hỏi cho danh mục bạn chọn ! Hiện chỉ có " + countQuestions + " câu cho danh mục đó");
+        } else {
+            List<Exams> exams1 = examsRepository.getAllExams();
+            for (Exams exams2 :exams1){
+                if (examsDto.getTitle().equals(exams2.getTitle())&&examsDto.getCategory().equals(exams2.getCategory())){
+                    throw new IllegalArgumentException("Đề thi này đã có trong hệ thống");
+                }
+            }
             Exams exams =new Exams();
             BeanUtils.copyProperties(examsDto,exams);
             examsRepository.save(exams);
@@ -142,6 +161,12 @@ public class ExamsService implements IExamsService{
     public void confirmExams(Integer examId, List<Integer> questionsId) {
         Exams exams = examsRepository.findById(examId).orElse(null);
         if (exams!=null){
+            List<Exams> exams1 = examsRepository.getAllExams();
+            for (Exams exams2 :exams1){
+                if (exams.getTitle().equals(exams2.getTitle())&&exams.getCategory().equals(exams2.getCategory())){
+                    throw new IllegalArgumentException("Đề thi này đã có trong hệ thống");
+                }
+            }
             List<Questions> questionsList = questionsRepository.findQuestionsByCategory(exams.getCategory());
             if (!questionsList.isEmpty()&&!questionsId.isEmpty()){
                 List<Questions> selectQuestions= questionsList.stream()
@@ -159,6 +184,46 @@ public class ExamsService implements IExamsService{
                        examQuestions.setQuestion(newQuestions);
                        examQuestions.setScore(score);
                        examsQuestionRepository.save(examQuestions);
+                }
+            }
+        }
+    }
+    @Override
+    @Transactional
+    public void confirmExamsUpdate(Integer examId, List<Integer> questionsId) {
+        Exams exams = examsRepository.findById(examId).orElse(null);
+        if (exams!=null){
+            List<Exams> exams1 = examsRepository.getAllExams();
+            for (Exams exams2 :exams1){
+                if (exams.getTitle().equals(exams2.getTitle())&&exams.getCategory().equals(exams2.getCategory())){
+                    throw new IllegalArgumentException("Đề thi này đã có trong hệ thống");
+                }
+            }
+            List<Questions> questionsList = questionsRepository.findQuestionsByCategory(exams.getCategory());
+            if (!questionsList.isEmpty()&&!questionsId.isEmpty()){
+                List<ExamQuestions> existingExamQuestions = examsQuestionRepository.findByExam_Id(examId);
+                Set<Integer> existingQuestionIds = existingExamQuestions.stream()
+                        .map(eq -> eq.getQuestion().getId())
+                        .collect(Collectors.toSet()); // lưu các câu hỏi đã có trong đề vào set
+
+                List<Questions> selectQuestions= questionsList.stream()
+                        .filter(q ->questionsId.contains(q.getId()) && !existingQuestionIds.contains(q.getId()))//lọc ra những id câu hỏi nào trùng với danh sách id câu hỏi thêm vào đề
+                        .collect(Collectors.toList());
+                int newTotal = existingQuestionIds.size() + selectQuestions.size();
+                exams.setNumberOfQuestions(newTotal);
+                double score = 10.0/newTotal;
+                examsRepository.save(exams);
+
+                for (Questions newQuestions:selectQuestions){
+                    ExamQuestions examQuestions =  new ExamQuestions();
+                    examQuestions.setExam(exams);
+                    examQuestions.setQuestion(newQuestions);
+                    examsQuestionRepository.save(examQuestions);
+                }
+                List<ExamQuestions> allExamQuestions = examsQuestionRepository.findByExam_Id(examId);
+                for (ExamQuestions eq : allExamQuestions) {
+                    eq.setScore(score);
+                    examsQuestionRepository.save(eq);
                 }
             }
         }
@@ -202,5 +267,15 @@ public class ExamsService implements IExamsService{
     @Override
     public int countBySoftDeleteFalse() {
         return examsRepository.countBySoftDeleteFalse();
+    }
+
+    @Override
+    public void deleteQuestionOfExams(int idExams, int idQuestions) {
+        Exams exams = examsRepository.findById(idExams);
+        if (exams!=null){
+            exams.setNumberOfQuestions(exams.getNumberOfQuestions()-1);
+            examsRepository.save(exams);
+            examsRepository.deleteExamsByQuestionsId(idExams,idQuestions);
+        }
     }
 }
