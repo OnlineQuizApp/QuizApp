@@ -17,7 +17,16 @@ public interface IExamsRepository extends JpaRepository<Exams, Integer> {
 
     ///  tìm kiếm  đề thi
     @Query(value = """
-            SELECT * FROM exams e WHERE e.soft_delete = false and e.category like ?1
+            select 
+            distinct 
+            e.id,
+            e.title,
+            e.category,
+            e.number_of_questions,
+            e.test_time,
+            e.soft_delete from exams e join exam_questions eq on e.id=eq.exam_id
+            where e.soft_delete=false and e.id in(select eq.exam_id from exam_questions eq)
+            and e.category like ?1
             """,
             countQuery = """
            SELECT * FROM exams e WHERE e.soft_delete = false and e.category like ?1
@@ -26,7 +35,16 @@ public interface IExamsRepository extends JpaRepository<Exams, Integer> {
     Page<Exams> searchExamsByCategory(String category, Pageable pageable);
 
     @Query(value = """
-            SELECT * FROM exams e WHERE e.soft_delete = false and e.title like ?1
+             select 
+            distinct 
+            e.id,
+            e.title,
+            e.category,
+            e.number_of_questions,
+            e.test_time,
+            e.soft_delete from exams e join exam_questions eq on e.id=eq.exam_id
+            where e.soft_delete=false and e.id in(select eq.exam_id from exam_questions eq)
+            and e.title like ?1
             """,
             countQuery = """
            SELECT * FROM exams e WHERE e.soft_delete = false and e.title like ?1
@@ -35,15 +53,24 @@ public interface IExamsRepository extends JpaRepository<Exams, Integer> {
     Page<Exams> searchExamsByTitle(String title, Pageable pageable);
 
     @Query(value = """
-                   SELECT * FROM exams e WHERE e.soft_delete = false
+                   SELECT * FROM exams e WHERE e.soft_delete = false 
                    """,nativeQuery = true)
     List<Exams> getAllExams();
 
     @Query(value = """
-            select * from exams e where e.soft_delete=false
+            select 
+            distinct 
+            e.id,
+            e.title,
+            e.category,
+            e.number_of_questions,
+            e.test_time,
+            e.soft_delete from exams e join exam_questions eq on e.id=eq.exam_id
+            where e.soft_delete=false and e.id in(select eq.exam_id from exam_questions eq)
+            ORDER BY e.id DESC
             """,
             countQuery = """
-                    select * from exams e where e.soft_delete=false
+            select * from exams e where e.soft_delete=false 
                     """,
             nativeQuery = true)
     Page<Exams> getAllExams(Pageable pageable);

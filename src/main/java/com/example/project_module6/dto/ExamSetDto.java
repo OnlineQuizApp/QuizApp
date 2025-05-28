@@ -14,6 +14,12 @@ import java.util.Date;
 public class ExamSetDto {
     private int id;
     private String name;
+    private String img;
     private Date creationDate;
     private boolean softDelete=false;
+    public ExamSetDto(String name, String img, Date creationDate) {
+        this.name = name;
+        this.img = img;
+        this.creationDate = creationDate;
+    }
 }

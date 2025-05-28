@@ -24,6 +24,7 @@ public class Users {
     private String name;
     private String email;
     private boolean status = true;
+    @Column(name = "created_at")
     private LocalDate createAt;
 
     public enum Role {

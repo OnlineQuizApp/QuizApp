@@ -6,6 +6,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.*;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.*;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -55,12 +56,12 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ Thêm dòng này
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/account/login", "/api/account/register","/api/user/forgot-password",
-                                "/api/user/reset-password","/api/questions/**","/api/category/**","/api/exams/**").permitAll()
+                                "/api/user/reset-password","/api/questions/**","/api/category/**","/api/exams/**","/chat/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/questions/upload-file-img","/api/questions/upload-file-img/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
 
-                        .requestMatchers("/api/exam-set/create/confirm/**").hasRole("ADMIN") // Thêm dòng này
+                        .requestMatchers("/api/exam-set/create/confirm/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/exam-set/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/exam-set/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/exam-set/**").hasAuthority("ROLE_ADMIN")
@@ -75,5 +76,7 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
+
+
 
 }

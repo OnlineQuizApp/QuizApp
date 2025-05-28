@@ -1,8 +1,6 @@
 package com.example.project_module6.repository;
 
 import com.example.project_module6.dto.ExamSetDetailDataDto;
-import com.example.project_module6.dto.ExamSetDetailDto;
-import com.example.project_module6.model.ExamSetExam;
 import com.example.project_module6.model.ExamSets;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
@@ -15,7 +13,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface IExamSetRepository extends JpaRepository<ExamSets, Integer> {
+    public interface IExamSetRepository extends JpaRepository<ExamSets, Integer> {
 
     @Modifying
     @Transactional
@@ -30,13 +28,25 @@ public interface IExamSetRepository extends JpaRepository<ExamSets, Integer> {
             """
             , nativeQuery = true)
     Page<ExamSets> findAllExamSetByName(String name, Pageable pageable);
+
     @Query(value = """
-            select *from exam_sets es where es.soft_delete=false
+            select 
+            es.id,
+            es.name,
+            es.img,
+            es.creation_date,
+            es.soft_delete
+            from exam_sets es
+            join exam_set_exam ese on es.id=ese.exam_set_id
+            where es.soft_delete=false
+            and es.id in(select ese.exam_set_id from exam_set_exam ese)
+            ORDER BY es.id DESC
               """, countQuery = """
-            select *from exam_sets es where es.soft_delete=false
+            select * from exam_sets es where es.soft_delete=false 
             """
             , nativeQuery = true)
     Page<ExamSets> findAllExamSet(Pageable pageable);
+
     @Query(value = """
             select *from exam_sets es where es.soft_delete=false
               """
@@ -50,6 +60,7 @@ public interface IExamSetRepository extends JpaRepository<ExamSets, Integer> {
     @Query(value = """
                 select es.id AS exam_set_id,
                 es.name AS exam_set_name,
+                es.img as exam_set_img,
                 es.creation_date,
                 GROUP_CONCAT(
                 CONCAT(e.id,'-',e.title,'-', e.category,'-', e.number_of_questions,'-', e.test_time)) AS exams

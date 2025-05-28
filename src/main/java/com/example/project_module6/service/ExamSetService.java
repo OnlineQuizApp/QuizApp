@@ -43,7 +43,6 @@ public class ExamSetService implements IExamSetService {
     @Override
     @Transactional
     public ExamSets createExamSet(ExamSetDto examSetDto) {
-        System.out.println("ExamSetDto: " + examSetDto);
         List<ExamSets> examSetsList = examSetRepository.getAllExamSet();
         for (ExamSets examSets : examSetsList) {
             if (examSets.getName().equals(examSetDto.getName())) {
@@ -52,10 +51,8 @@ public class ExamSetService implements IExamSetService {
         }
         ExamSets examSets = new ExamSets();
         BeanUtils.copyProperties(examSetDto, examSets);
-        System.out.println("ExamSets before save: " + examSets);
-        ExamSets savedExamSet = examSetRepository.saveAndFlush(examSets);
-        System.out.println("ExamSets after save: " + savedExamSet);
-        return savedExamSet;
+        ExamSets saveExamSet = examSetRepository.saveAndFlush(examSets);
+        return saveExamSet;
     }
 
     @Override
@@ -109,16 +106,15 @@ public class ExamSetService implements IExamSetService {
         if (examSets != null) {
             List<ExamSets> examSetsList = examSetRepository.getAllExamSet();
             for (ExamSets examSets1 : examSetsList) {
-                if (examSetDto.getName().equals(examSets1.getName())) {
+                if (examSetDto.getName().equals(examSets1.getName())&&examSetDto.getId()!=examSets1.getId()) {
                     throw new IllegalArgumentException("Bộ đề này đã có trong hệ thống");
                 }
             }
-            examSets.setId(examSetDto.getId());
             examSets.setName(examSetDto.getName());
             examSets.setCreationDate(examSetDto.getCreationDate());
-//            examSetExamsRepository.deleteByExamSetId(examSets.getId());
             ExamSetExam examSetExam = new ExamSetExam();
             examSetExam.setExamSet(examSets);
+            examSetRepository.save(examSets);
         }
 
         return examSets;
@@ -126,8 +122,12 @@ public class ExamSetService implements IExamSetService {
 
     @Override
     public void deleteExamSet(int id) {
-        examSetExamsRepository.deleteByExamSetId(id);
-         examSetRepository.deleteExamByID(id);
+        ExamSets exams = examSetRepository.findById(id);
+        if (exams!=null){
+            exams.setSoftDelete(true);
+            examSetRepository.save(exams);
+        }
+
     }
 
     @Override
@@ -151,6 +151,7 @@ public class ExamSetService implements IExamSetService {
                 ExamSetDetailDto examSetDetailDto = new ExamSetDetailDto();
                 examSetDetailDto.setId(examSetDetailDataDto1.getExamSetId());
                 examSetDetailDto.setName(examSetDetailDataDto1.getExamSetName());
+                examSetDetailDto.setImg(examSetDetailDataDto1.getExamSetImg());
                 examSetDetailDto.setCreationDate(examSetDetailDataDto1.getCreationDate());
                 List<ExamsDto> exams = new ArrayList<>();
                 String examRaw = examSetDetailDataDto1.getExams();
