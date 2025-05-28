@@ -28,7 +28,6 @@ public class ExamsQuestionsService implements IExamsQuestionsService {
     public Page<ExamsQuestionsResponseDto> detailExamsQuestions(int id, Pageable pageable) {
         Page<ExamsQuestionDataDto> dataDtoList = examsQuestionRepository.detailExamsQuestions(id, pageable);
         if (!dataDtoList.isEmpty()){
-            System.out.println(dataDtoList+"--------------");
             return dataDtoList.map(dto -> {
                 ExamsQuestionsResponseDto responseDto = new ExamsQuestionsResponseDto();
                 responseDto.setId(dto.getExamsId());

@@ -161,12 +161,7 @@ public class ExamsService implements IExamsService{
     public void confirmExams(Integer examId, List<Integer> questionsId) {
         Exams exams = examsRepository.findById(examId).orElse(null);
         if (exams!=null){
-            List<Exams> exams1 = examsRepository.getAllExams();
-            for (Exams exams2 :exams1){
-                if (exams.getTitle().equals(exams2.getTitle())&&exams.getCategory().equals(exams2.getCategory())){
-                    throw new IllegalArgumentException("Đề thi này đã có trong hệ thống");
-                }
-            }
+
             List<Questions> questionsList = questionsRepository.findQuestionsByCategory(exams.getCategory());
             if (!questionsList.isEmpty()&&!questionsId.isEmpty()){
                 List<Questions> selectQuestions= questionsList.stream()
@@ -195,7 +190,7 @@ public class ExamsService implements IExamsService{
         if (exams!=null){
             List<Exams> exams1 = examsRepository.getAllExams();
             for (Exams exams2 :exams1){
-                if (exams.getTitle().equals(exams2.getTitle())&&exams.getCategory().equals(exams2.getCategory())){
+                if (exams.getTitle().equals(exams2.getTitle())&&exams.getCategory().equals(exams2.getCategory())&&exams.getId()!=exams2.getId()){
                     throw new IllegalArgumentException("Đề thi này đã có trong hệ thống");
                 }
             }

@@ -17,9 +17,15 @@ public class ExamSets {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String name;
+    private String img;
     @Column(name = "creation_date")
     private Date creationDate;
     @Column(name = "soft_delete")
     private boolean softDelete=false;
 
+    public ExamSets(String name, String img, Date creationDate) {
+        this.name = name;
+        this.img = img;
+        this.creationDate = creationDate;
+    }
 }

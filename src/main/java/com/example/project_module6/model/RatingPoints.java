@@ -17,8 +17,7 @@ public class RatingPoints {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private int accumulatedPoints;
-
+    private double accumulatedPoints;
     @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id", unique = true)
     private Users user;

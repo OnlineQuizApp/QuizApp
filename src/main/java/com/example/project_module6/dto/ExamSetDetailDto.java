@@ -17,6 +17,7 @@ import java.util.List;
 public class ExamSetDetailDto {
     private Integer id;
     private String name;
+    private String img;
     private Date creationDate;
     private List<ExamsDto> exams;
 }

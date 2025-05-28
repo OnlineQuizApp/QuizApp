@@ -6,6 +6,7 @@ import com.example.project_module6.model.Exams;
 import com.example.project_module6.model.Questions;
 import com.example.project_module6.repository.IExamSetRepository;
 import com.example.project_module6.repository.IExamsRepository;
+import com.example.project_module6.service.ICloudinaryService;
 import com.example.project_module6.service.IExamSetService;
 import com.example.project_module6.service.IExamsService;
 import lombok.extern.slf4j.Slf4j;
@@ -13,11 +14,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,18 +40,18 @@ public class ExamSetController {
     private IExamSetRepository examSetRepository;
     @Autowired
     private IExamsRepository examsRepository;
-
+    @Autowired
+    private ICloudinaryService cloudinaryService;
     @GetMapping("")
-    public ResponseEntity<Page<ExamSets>> getAllExamSet(
-            @RequestParam(defaultValue = "", required = false)
-            String name,
-            @PageableDefault(size = 5)
-            Pageable pageable){
+    public ResponseEntity<Page<ExamSets>> getAllExamSet(@RequestParam(defaultValue = "", required = false)
+                                                        String name,
+                                                        @PageableDefault(size = 5)
+                                                        Pageable pageable){
         Page<ExamSets>examSets;
-        if (name==null){
-            examSets=examSetService.getAllExamSet(pageable);
-        }else {
+        if (name!=null&&!name.isEmpty()){
             examSets=examSetService.getAllExamSetByName(name,pageable);
+        }else {
+            examSets=examSetService.getAllExamSet(pageable);
         }
         if (!examSets.isEmpty()){
             return new ResponseEntity<>(examSets, HttpStatus.OK);
@@ -55,12 +61,18 @@ public class ExamSetController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<?> createExams(@RequestBody ExamSetDto examSetDto){
+    public ResponseEntity<?> createExams( @RequestParam("file") MultipartFile file,
+                                          @RequestParam("name") String name,
+                                          @RequestParam("creationDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date creationDate){
         try {
-            ExamSets examSets = examSetService.createExamSet(examSetDto);
-            return new ResponseEntity<>(examSets.getId(),HttpStatus.OK);
+            String img = cloudinaryService.uploadImage(file);
+            ExamSetDto examSets = new ExamSetDto(name,img,creationDate);
+            ExamSets examSet = examSetService.createExamSet(examSets);
+            return new ResponseEntity<>(examSet.getId(),HttpStatus.OK);
         }catch (IllegalArgumentException ex){
             return ResponseEntity.badRequest().body(ex.getMessage());
+        } catch (IOException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
     @GetMapping("/findById/{id}")
@@ -106,13 +118,26 @@ public class ExamSetController {
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateExamsSet(@PathVariable("id")int id,@RequestBody ExamSetDto examsDto){
+    @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
+    public ResponseEntity<?> updateExamsSet(@PathVariable("id")int id,
+                                            @RequestParam(value = "file", required = false) MultipartFile file,
+                                            @RequestParam("name") String name,
+                                            @RequestParam("creationDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date creationDate){
         try {
-            ExamSets exams = examSetService.updateExamSet(id,examsDto);
+            String img;
+            if (file == null || file.isEmpty()){
+                ExamSets existingExamSet = examSetRepository.findById(id);
+                img=existingExamSet.getImg();
+            }else {
+                img = cloudinaryService.uploadImage(file);
+            }
+            ExamSetDto examSets = new ExamSetDto(name,img,creationDate);
+            ExamSets exams = examSetService.updateExamSet(id,examSets);
             return new ResponseEntity<>(exams,HttpStatus.OK);
         }catch (IllegalArgumentException ex){
             return ResponseEntity.badRequest().body(ex.getMessage());
+        } catch (IOException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 

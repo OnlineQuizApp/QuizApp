@@ -25,7 +25,7 @@ public interface IQuestionsRepository extends JpaRepository<Questions,Integer> {
     Page<Questions> searchQuestionByCategory(String category, Pageable pageable);
 
     @Query(value = "SELECT q.*,c.name FROM questions q join categorys c on q.category_id=c.id where q.soft_delete=false ORDER BY q.id DESC",
-            countQuery = "SELECT q.*,c.name FROM questions q join categorys c on q.category_id=c.id where q.soft_delete=false ORDER BY q.id DESC",
+            countQuery = "SELECT q.*,c.name FROM questions q join categorys c on q.category_id=c.id where q.soft_delete=false ",
             nativeQuery = true)
     Page<Questions> getAllQuestions(Pageable pageable);
 
