@@ -75,11 +75,12 @@ public class ExamsService implements IExamsService{
             if (!questions.isEmpty()){
                 double score = 10.0/numberOfQuestions;
                 for (Questions question : questions){
-
                     ExamQuestions examQuestions = new ExamQuestions();
                     examQuestions.setQuestion(question);
                     examQuestions.setExam(exams);
                     examQuestions.setScore(score);
+                    question.setExitsExamsId(true);
+                    questionsRepository.save(question);
                     examsQuestionRepository.save(examQuestions);
                 }
             }
@@ -108,6 +109,12 @@ public class ExamsService implements IExamsService{
                exams.setTestTime(examsDto.getTestTime());
                exams.setNumberOfQuestions(examsDto.getNumberOfQuestions());
                exams.setSoftDelete(examsDto.isSoftDelete());
+               List<ExamQuestions> oldExamQuestions = examsQuestionRepository.findByExam_Id(id);
+               for (ExamQuestions eq : oldExamQuestions) {
+                   Questions oldQ = eq.getQuestion();
+                   oldQ.setExitsExamsId(false);
+                   questionsRepository.save(oldQ);
+               }
                examsQuestionRepository.deleteByExamId(exams.getId());// xóa câu hỏi cũ trong bảng trung gian
                List<Questions> questionsList = questionsRepository.findRandomQuestions(exams.getCategory(),numberOfQuestions);
                double score = 10.0/numberOfQuestions;
@@ -126,12 +133,21 @@ public class ExamsService implements IExamsService{
     }
 
     @Override
+    @Transactional
     public boolean deleteExams(int id) {
         Exams exams = examsRepository.findById(id);
         if (exams!=null){
             exams.setSoftDelete(true);
-            examsQuestionRepository.deleteByExamId(exams.getId());
             examsRepository.save(exams);
+            List<ExamQuestions> oldExamQuestions = examsQuestionRepository.findByExam_Id(id);
+            for (ExamQuestions eq : oldExamQuestions) {
+                Questions oldQ = eq.getQuestion();
+                int countQuestions = examsQuestionRepository.countByQuestion_Id(oldQ.getId());
+                if (countQuestions==0){
+                    oldQ.setExitsExamsId(false);
+                    questionsRepository.save(oldQ);
+                }
+            }
             return true;
         }
         return false;
@@ -173,6 +189,12 @@ public class ExamsService implements IExamsService{
                 if (selectQuestions.size()!=numberOfQuestions){
                     throw new IllegalArgumentException("Số câu hỏi chọn không trùng với số lượng câu hỏi của đề yêu cầu!");
                 }
+                List<ExamQuestions> oldExamQuestions = examsQuestionRepository.findByExam_Id(examId);
+                for (ExamQuestions eq : oldExamQuestions) {
+                    Questions oldQ = eq.getQuestion();
+                    oldQ.setExitsExamsId(false);
+                    questionsRepository.save(oldQ);
+                }
                 examsQuestionRepository.deleteByExamId(examId);
                 double score = 10.0/numberOfQuestions;
                 for (Questions newQuestions:selectQuestions){
@@ -180,6 +202,7 @@ public class ExamsService implements IExamsService{
                        examQuestions.setExam(exams);
                        examQuestions.setQuestion(newQuestions);
                        examQuestions.setScore(score);
+                        newQuestions.setExitsExamsId(true);
                        examsQuestionRepository.save(examQuestions);
                 }
             }
@@ -210,11 +233,12 @@ public class ExamsService implements IExamsService{
                 exams.setNumberOfQuestions(newTotal);
                 double score = 10.0/newTotal;
                 examsRepository.save(exams);
-
                 for (Questions newQuestions:selectQuestions){
                     ExamQuestions examQuestions =  new ExamQuestions();
                     examQuestions.setExam(exams);
                     examQuestions.setQuestion(newQuestions);
+                    newQuestions.setExitsExamsId(true);
+                    questionsRepository.save(newQuestions);
                     examsQuestionRepository.save(examQuestions);
                 }
                 List<ExamQuestions> allExamQuestions = examsQuestionRepository.findByExam_Id(examId);
@@ -273,6 +297,14 @@ public class ExamsService implements IExamsService{
             exams.setNumberOfQuestions(exams.getNumberOfQuestions()-1);
             examsRepository.save(exams);
             examsRepository.deleteExamsByQuestionsId(idExams,idQuestions);
+            Questions q = questionsRepository.findById(idQuestions);
+            int count = examsQuestionRepository.countByQuestion_Id(idQuestions);
+            if (count==0){
+                if (q!=null){
+                    q.setExitsExamsId(false);
+                    questionsRepository.save(q);
+                }
+            }
         }
     }
 

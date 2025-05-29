@@ -25,7 +25,8 @@ public interface IExamsRepository extends JpaRepository<Exams, Integer> {
             e.category,
             e.number_of_questions,
             e.test_time,
-            e.soft_delete from exams e join exam_questions eq on e.id=eq.exam_id
+            e.soft_delete,
+            e.exits_exam_set_exam            from exams e join exam_questions eq on e.id=eq.exam_id
             where e.soft_delete=false and e.id in(select eq.exam_id from exam_questions eq)
             and e.category like ?1
             """,
@@ -43,7 +44,8 @@ public interface IExamsRepository extends JpaRepository<Exams, Integer> {
             e.category,
             e.number_of_questions,
             e.test_time,
-            e.soft_delete from exams e join exam_questions eq on e.id=eq.exam_id
+            e.soft_delete,
+               e.exits_exam_set_exam         from exams e join exam_questions eq on e.id=eq.exam_id
             where e.soft_delete=false and e.id in(select eq.exam_id from exam_questions eq)
             and e.title like ?1
             """,
@@ -54,7 +56,17 @@ public interface IExamsRepository extends JpaRepository<Exams, Integer> {
     Page<Exams> searchExamsByTitle(String title, Pageable pageable);
 
     @Query(value = """
-                   SELECT * FROM exams e WHERE e.soft_delete = false 
+            select 
+            distinct 
+            e.id,
+            e.title,
+            e.category,
+            e.number_of_questions,
+            e.test_time,
+            e.soft_delete,
+            e.exits_exam_set_exam from exams e join exam_questions eq on e.id=eq.exam_id
+            where e.soft_delete=false and e.id in(select eq.exam_id from exam_questions eq)
+            ORDER BY e.id DESC
                    """,nativeQuery = true)
     List<Exams> getAllExams();
 
@@ -66,7 +78,8 @@ public interface IExamsRepository extends JpaRepository<Exams, Integer> {
             e.category,
             e.number_of_questions,
             e.test_time,
-            e.soft_delete from exams e join exam_questions eq on e.id=eq.exam_id
+            e.soft_delete,
+            e.exits_exam_set_exam from exams e join exam_questions eq on e.id=eq.exam_id
             where e.soft_delete=false and e.id in(select eq.exam_id from exam_questions eq)
             ORDER BY e.id DESC
             """,

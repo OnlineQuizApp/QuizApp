@@ -17,6 +17,7 @@ public class ExamSetDto {
     private String img;
     private Date creationDate;
     private boolean softDelete=false;
+
     public ExamSetDto(String name, String img, Date creationDate) {
         this.name = name;
         this.img = img;

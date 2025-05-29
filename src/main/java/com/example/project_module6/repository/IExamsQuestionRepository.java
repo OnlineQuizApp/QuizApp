@@ -90,4 +90,11 @@ public interface IExamsQuestionRepository extends JpaRepository<ExamQuestions, I
     boolean existsByExam(Exams exam);
 
     List<ExamQuestions> findByExam_Id(int examId);
+
+    @Query(value = """
+      select count(eq.question_id) from exam_questions eq 
+      join exams e on e.id=eq.exam_id where eq.question_id=?1 and e.soft_delete=false
+      """,nativeQuery = true)
+    int countByQuestion_Id(int questionId);
+
 }
