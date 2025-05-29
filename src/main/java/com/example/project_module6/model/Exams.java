@@ -25,5 +25,7 @@ public class Exams {
     private String testTime;
     @Column(name = "soft_delete")
     private boolean softDelete=false;
+    @Column(name = "exits_exam_set_exam")
+    private boolean exitsExamSetExam=false;
 
 }

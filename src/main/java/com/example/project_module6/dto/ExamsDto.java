@@ -20,7 +20,7 @@ public class ExamsDto {
     private int numberOfQuestions;
     private String testTime;
     private boolean softDelete=false;
-
+    private boolean exitsExamSetExam=false;
     public ExamsDto(int id,String title, String category, int numberOfQuestions, String testTime) {
         this.id = id;
         this.title = title;

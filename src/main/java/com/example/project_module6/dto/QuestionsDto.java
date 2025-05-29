@@ -4,6 +4,7 @@
     import com.example.project_module6.model.Categorys;
     import com.example.project_module6.model.ExamQuestions;
     import com.example.project_module6.model.UserAnswers;
+    import jakarta.persistence.Column;
     import jakarta.validation.constraints.NotBlank;
     import jakarta.validation.constraints.NotNull;
     import jakarta.validation.constraints.Size;
@@ -37,6 +38,8 @@
         private Categorys category;
 
         private boolean softDelete = false;
+
+        private boolean exitsExamsId =false;
 
         public QuestionsDto(String content) {
             this.content = content;
