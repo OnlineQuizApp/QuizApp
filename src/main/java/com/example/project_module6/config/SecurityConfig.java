@@ -40,7 +40,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 //        config.setAllowedOrigins(List.of("http://localhost:3000")); // Hoặc "*" nếu không bảo mật
-        config.setAllowedOrigins(List.of("http://10.10.8.179:3000")); // Hoặc "*" nếu không bảo mật
+        config.setAllowedOrigins(List.of("http://10.10.8.55:3000")); // Hoặc "*" nếu không bảo mật
         config.setAllowedOriginPatterns(List.of("http://10.10.8.*:3000")); // Hoặc "*" nếu không bảo mật
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type","Content-Disposition"));
@@ -57,10 +57,11 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ Thêm dòng này
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/account/login", "/api/account/register","/api/user/forgot-password",
-                                "/api/user/reset-password","/api/questions/**","/api/category/**","/api/exams/**","/chat/**","/api/rating-points/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/questions/upload-file-img","/api/questions/upload-file-img/**").permitAll()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/account/login", "/api/account/register",
+                                "/api/user/reset-password","/api/questions/**","/api/category/**","/api/exams/**","/chat/**","/api/rating-points/**","/api/user/exams","/api/user/*/questions","/api/exams/submit","/api/exam-set/list","/api/exams/exam-set","/api/results/**","/api/admin/users","/api/exams/statistics","http://10.10.8.55:8080/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/questions/upload-file-img","/api/questions/upload-file-img/**","/api/user/forgot-password").permitAll()
+//                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/exams/submit/authenticated","/api/results/user/**").hasRole("USER")
 
 
                         .requestMatchers("/api/exam-set/create/confirm/**").hasRole("ADMIN")
@@ -68,7 +69,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/exam-set/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/exam-set/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/exam-set/**").hasAuthority("ROLE_ADMIN")
-
                         .requestMatchers("/api/user/me","/api/user/update","/api/user/change-password").hasAnyRole("ADMIN","USER")
                         .anyRequest().authenticated()
                 )
@@ -78,6 +78,7 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
+
 
 
 }

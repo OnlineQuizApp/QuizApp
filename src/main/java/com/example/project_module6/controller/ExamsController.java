@@ -1,14 +1,14 @@
 package com.example.project_module6.controller;
 
 
-import com.example.project_module6.dto.ExamsDto;
-import com.example.project_module6.dto.ExamsQuestionDataDto;
+import com.example.project_module6.dto.*;
 
-import com.example.project_module6.dto.ExamsQuestionsResponseDto;
 import com.example.project_module6.model.Exams;
 import com.example.project_module6.model.Questions;
+import com.example.project_module6.model.Users;
 import com.example.project_module6.repository.IExamsRepository;
 import com.example.project_module6.repository.IQuestionsRepository;
+import com.example.project_module6.repository.IUserRepository;
 import com.example.project_module6.service.IExamsQuestionsService;
 import com.example.project_module6.service.IExamsService;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +18,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -37,6 +39,8 @@ public class ExamsController {
     private IExamsQuestionsService examsQuestionsService;
     @Autowired
     private IQuestionsRepository questionsRepository;
+    @Autowired
+    private IUserRepository userRepository;
 
     @GetMapping("")
     public ResponseEntity<Page<?>> getAllExams(@PageableDefault(size = 5) Pageable pageable,
@@ -181,5 +185,49 @@ public class ExamsController {
                                                     @PathVariable("idQuestions") int idQuestions) {
         examsService.deleteQuestionOfExams(idExams, idQuestions);
         return ResponseEntity.ok("Xoá câu hỏi thành công!");
+    }
+
+    // Lấy danh sách đề thi
+    @GetMapping("/getAll")
+    public ResponseEntity<List<ExamsDto>> getAllExams() {
+        return ResponseEntity.ok(examsService.getAllExams());
+    }
+    // Lấy chi tiết đề thi
+    @GetMapping("/1/{id}")
+    public ResponseEntity<ExamsDto> getExamById(@PathVariable int id) {
+        return ResponseEntity.ok(examsService.getExamById(id));
+    }
+
+    // Lấy danh sách câu hỏi của đề thi
+    @GetMapping("/1/{id}/questions")
+    public ResponseEntity<List<QuestionDTO>> getExamQuestions(@PathVariable int id) {
+        return ResponseEntity.ok(examsService.getExamQuestions(id));
+    }
+
+    // Nộp bài (chưa đăng nhập)
+    @PostMapping("/submit")
+    public ResponseEntity<ExamResultDTO> submitExam(@RequestBody SubmitExamRequest request) {
+        return ResponseEntity.ok(examsService.submitExam(request));
+    }
+
+    // Nộp bài (đã đăng nhập)
+    @PostMapping("/submit/authenticated")
+    public ResponseEntity<ExamResultDTO> submitExamAuthenticated(@RequestBody SubmitExamRequest request,
+                                                                 Authentication authentication) {
+        String username = authentication.getName();
+        Users user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        int userId = user.getId();
+        return ResponseEntity.ok(examsService.submitExamAuthenticated(request, userId));
+    }
+    @GetMapping("/exam-set/{examSetId}")
+    public ResponseEntity<List<Exams>> getExamsByExamSetId(@PathVariable Integer examSetId) {
+        List<Exams> exams = examsService.getExamsByExamSetId(examSetId);
+        return ResponseEntity.ok(exams);
+    }
+    @GetMapping("/statistics")
+    public ResponseEntity<List<ExamStatisticsDTO>> getExamStatistics() {
+        List<ExamStatisticsDTO> statistics = examsService.getExamStatistics();
+        return ResponseEntity.ok(statistics);
     }
 }

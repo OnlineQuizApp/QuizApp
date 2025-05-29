@@ -1,17 +1,10 @@
 package com.example.project_module6.service;
 
-import com.example.project_module6.dto.ExamResponseDto;
-import com.example.project_module6.dto.ExamsDto;
+import com.example.project_module6.dto.*;
 
-import com.example.project_module6.model.ExamQuestions;
-import com.example.project_module6.model.Exams;
-import com.example.project_module6.model.Questions;
+import com.example.project_module6.model.*;
 
-import com.example.project_module6.model.Results;
-import com.example.project_module6.repository.IExamsQuestionRepository;
-import com.example.project_module6.repository.IExamsRepository;
-import com.example.project_module6.repository.IQuestionsRepository;
-import com.example.project_module6.repository.IResultRepository;
+import com.example.project_module6.repository.*;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -20,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -38,6 +32,14 @@ public class ExamsService implements IExamsService{
     private IExamsQuestionRepository examsQuestionRepository;
     @Autowired
     private IResultRepository resultRepository;
+    @Autowired
+    private IAnswersRepository answersRepository;
+    @Autowired
+    private IUserRepository userRepository;
+    @Autowired
+    private IRatingPointRepository ratingPointRepository;
+    @Autowired
+    private IUserAnswersRepository userAnswersRepository;
     @Override
     public Page<Exams> getAlExams(Pageable pageable) {
         return examsRepository.getAllExams(pageable);
@@ -304,5 +306,172 @@ public class ExamsService implements IExamsService{
                 }
             }
         }
+    }
+
+    // Lấy danh sách đề thi chưa bị xóa
+    @Override
+    public List<ExamsDto> getAllExams() {
+        return examsRepository.getAllExams().stream().map(exam -> {
+            ExamsDto dto = new ExamsDto();
+            dto.setId(exam.getId());
+            dto.setTitle(exam.getTitle());
+            dto.setCategory(exam.getCategory());
+            dto.setNumberOfQuestions(exam.getNumberOfQuestions());
+            dto.setTestTime(exam.getTestTime());
+            return dto;
+        }).collect(Collectors.toList());
+    }
+    // Lấy chi tiết đề thi
+    @Override
+    public ExamsDto getExamById(int id) {
+        Exams exam = examsRepository.findById(id);
+        if(exam==null){
+            throw new RuntimeException("Exam not found");
+        }
+        if (exam.isSoftDelete()) {
+            throw new RuntimeException("Exam is deleted");
+        }
+        ExamsDto dto = new ExamsDto();
+        dto.setId(exam.getId());
+        dto.setTitle(exam.getTitle());
+        dto.setCategory(exam.getCategory());
+        dto.setNumberOfQuestions(exam.getNumberOfQuestions());
+        dto.setTestTime(exam.getTestTime());
+        return dto;
+    }
+    @Override
+    public List<QuestionDTO> getExamQuestions(int examId) {
+        List<ExamQuestions> examQuestions = examsQuestionRepository.findByExam_Id(examId);
+        return examQuestions.stream().map(eq -> {
+            Questions question = questionsRepository.findById(eq.getQuestion().getId());
+            if(question==null){
+                throw new RuntimeException("Question not found");
+            }
+            if (question.isSoftDelete()) {
+                throw new RuntimeException("Question is deleted");
+            }
+            QuestionDTO questionDTO = new QuestionDTO();
+            questionDTO.setId(question.getId());
+            questionDTO.setContent(question.getContent());
+            questionDTO.setImg(question.getImg());
+            questionDTO.setCategoryId(question.getCategory().getId());
+            List<Answers> answers = answersRepository.findByQuestionId(question.getId());
+            List<AnswersDto> answerDTOs = answers.stream().map(answer -> {
+                AnswersDto answerDTO = new AnswersDto();
+                answerDTO.setId(answer.getId());
+                answerDTO.setContent(answer.getContent());
+                answerDTO.setCorrect(answer.isCorrect());
+                return answerDTO;
+            }).collect(Collectors.toList());
+            questionDTO.setAnswers(answerDTOs);
+            return questionDTO;
+        }).filter(dto -> dto != null).collect(Collectors.toList());
+    }
+
+    // Xử lý nộp bài (chưa đăng nhập)
+    @Override
+    public ExamResultDTO submitExam(SubmitExamRequest request) {
+        Exams exam = examsRepository.findById(request.getExamId());
+        if(exam==null){
+            throw new RuntimeException("Exam not found");
+        }
+        List<ExamQuestions> examQuestions = examsQuestionRepository.findByExam_Id(exam.getId());
+
+        int correctAnswer = 0;
+        double totalScore = 0.0;
+
+        for (UserAnswerDTO userAnswer : request.getUserAnswers()) {
+            ExamQuestions examQuestion = examQuestions.stream()
+                    .filter(eq -> eq.getQuestion().getId() == userAnswer.getQuestionId())
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Question not in exam"));
+            List<Answers> correctAnswers = answersRepository.findByQuestionIdAndCorrectTrue(userAnswer.getQuestionId());
+            int correctCount = 0;
+            int wrongCount = 0;
+
+            for (Integer selectedAnswerId : userAnswer.getSelectedAnswerIds()) {
+                Answers answer = answersRepository.findById(selectedAnswerId)
+                        .orElseThrow(() -> new RuntimeException("Answer not found"));
+                if (answer.isCorrect()) {
+                    correctCount++;
+                } else {
+                    wrongCount++;
+                }
+            }
+
+            if (correctCount == correctAnswers.size() && wrongCount == 0) {
+                // Trường hợp 1: Chọn đúng tất cả đáp án
+                totalScore += examQuestion.getScore();
+                correctAnswer++;
+            } else if (correctCount > wrongCount) {
+                // Trường hợp 2: Số đáp án đúng > số đáp án sai
+                totalScore += examQuestion.getScore() * ((double) correctCount / correctAnswers.size());
+                if (correctCount > 0) {
+                    correctAnswer++;
+                }
+            }
+        }
+
+        ExamResultDTO result = new ExamResultDTO();
+        result.setCorrectAnswers(correctAnswer);
+        result.setTotalQuestions(examQuestions.size());
+        result.setTotalScore(totalScore);
+        return result;
+    }
+
+    // Xử lý nộp bài (đã đăng nhập)
+    @Override
+    public ExamResultDTO submitExamAuthenticated(SubmitExamRequest request, int userId) {
+        ExamResultDTO resultDTO = submitExam(request); // Tính điểm như chưa đăng nhập
+        RatingPoints ratingPoint = ratingPointRepository.findByUserId(userId);
+        if (ratingPoint == null) {
+            ratingPoint = new RatingPoints();
+            ratingPoint.setUser(userRepository.findById(userId));
+            ratingPoint.setAccumulatedPoints(0); // điểm đầu tiên
+        }else if(resultDTO.getTotalScore()>5){
+            ratingPoint.setAccumulatedPoints(ratingPoint.getAccumulatedPoints() + 1);
+        }
+        ratingPointRepository.save(ratingPoint);
+        // Lưu kết quả vào bảng results
+        Results result = new Results();
+        result.setUser(userRepository.findById(userId));
+        result.setExam(examsRepository.findById(request.getExamId()));
+        result.setTotalScore(resultDTO.getTotalScore());
+        result.setRatingPoint(ratingPoint);
+        result.setSubmittedAt(LocalDate.now());
+        resultRepository.save(result);
+
+        // Lưu đáp án người dùng chọn
+        for (UserAnswerDTO userAnswer : request.getUserAnswers()) {
+            UserAnswers ua = new UserAnswers();
+            ua.setResult(resultRepository.findById(result.getId()));
+            ua.setQuestion(questionsRepository.findById(userAnswer.getQuestionId()));
+            for (Integer answerId : userAnswer.getSelectedAnswerIds()) {
+                Optional<Answers> answerOpt = answersRepository.findById(answerId);
+                ua.setAnswer(answerOpt.get());
+                userAnswersRepository.save(ua);
+            }
+        }
+        // Cập nhật điểm tích lũy nếu điểm >= 8
+//        result.setRatingPoint(ratingPointRepository.findById(ratingPoint.getId()));
+//        resultRepository.save(result);
+        return resultDTO;
+    }
+    @Override
+    public List<Exams> getExamsByExamSetId(Integer examSetId) {
+        return examsRepository.findExamsByExamSetId(examSetId);
+    }
+    @Override
+    public List<ExamStatisticsDTO> getExamStatistics() {
+        List<Object[]> results = examsRepository.getExamStatistics();
+        return results.stream().map(result -> {
+            Long examId = ((Number) result[0]).longValue();
+            String examTitle = (String) result[1];
+            Long totalParticipants = ((Number) result[2]).longValue();
+            Long aboveEight = ((Number) result[3]).longValue();
+            Double percentageAboveEight = totalParticipants > 0 ?
+                    (aboveEight * 100.0 / totalParticipants) : 0.0;
+            return new ExamStatisticsDTO(examId, examTitle, totalParticipants, percentageAboveEight);
+        }).collect(Collectors.toList());
     }
 }
