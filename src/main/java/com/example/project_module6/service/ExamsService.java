@@ -98,7 +98,7 @@ public class ExamsService implements IExamsService{
            }else {
                List<Exams> exams1 = examsRepository.getAllExams();
                for (Exams exams2 :exams1){
-                   if (examsDto.getTitle().equals(exams2.getTitle())&&examsDto.getCategory().equals(exams2.getCategory())){
+                   if (examsDto.getId()!=exams2.getId()&&examsDto.getTitle().equals(exams2.getTitle())&&examsDto.getCategory().equals(exams2.getCategory())){
                        throw new IllegalArgumentException("Đề thi này đã có trong hệ thống");
                    }
                }
