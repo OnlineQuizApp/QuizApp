@@ -46,7 +46,7 @@ public class ExamSetService implements IExamSetService {
         List<ExamSets> examSetsList = examSetRepository.getAllExamSet();
         for (ExamSets examSets : examSetsList) {
             if (examSets.getName().equals(examSetDto.getName())) {
-                throw new IllegalArgumentException("Đề thi này đã có trong hệ thống");
+                throw new IllegalArgumentException("Bộ đề thi này đã có trong hệ thống");
             }
         }
         ExamSets examSets = new ExamSets();
@@ -71,6 +71,8 @@ public class ExamSetService implements IExamSetService {
                     ExamSetExam examSets1 = new ExamSetExam();
                     examSets1.setExam(exams1);
                     examSets1.setExamSet(examSets);
+                    exams1.setExitsExamSetExam(true);
+                    examsRepository.save(exams1);
                     examSetExamsRepository.save(examSets1);
                 }
             }
@@ -94,6 +96,8 @@ public class ExamSetService implements IExamSetService {
                     ExamSetExam examSets1 = new ExamSetExam();
                     examSets1.setExam(exams);
                     examSets1.setExamSet(examSets);
+                    exams.setExitsExamSetExam(true);
+                    examsRepository.save(exams);
                     examSetExamsRepository.saveAndFlush(examSets1);
                 }
             }
@@ -126,8 +130,18 @@ public class ExamSetService implements IExamSetService {
         if (exams!=null){
             exams.setSoftDelete(true);
             examSetRepository.save(exams);
-        }
+            List<ExamSetExam> examSetsList= examSetExamsRepository.findByExamSet_Id(id);
+            for (ExamSetExam examSetExam:examSetsList){
+                Exams exams1 =examSetExam.getExam();
+                int countExams = examSetExamsRepository.countByExam_Id(exams1.getId());
+                if (countExams==0){
+                    exams1.setExitsExamSetExam(false);
+                    examsRepository.save(exams1);
+                }
 
+            }
+
+        }
     }
 
     @Override
@@ -136,7 +150,15 @@ public class ExamSetService implements IExamSetService {
     public boolean deleteExamByExamSetId(int examSetId, int examId) {
         ExamSets exams = examSetRepository.findById(examSetId);
         if (exams!=null){
+            Exams exams1= examsRepository.findById(examId);
             examSetExamsRepository.deleteExamByExamSet(examSetId,examId);
+            int countExams = examSetExamsRepository.countByExam_Id(examId);
+            if (countExams==0){
+                if (exams1!=null){
+                    exams1.setExitsExamSetExam(false);
+                    examsRepository.save(exams1);
+                }
+            }
             return true;
         }
         return false;

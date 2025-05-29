@@ -61,7 +61,7 @@ public class ExamSetController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<?> createExams( @RequestParam("file") MultipartFile file,
+    public ResponseEntity<?> createExamSet( @RequestParam("file") MultipartFile file,
                                           @RequestParam("name") String name,
                                           @RequestParam("creationDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date creationDate){
         try {

@@ -19,6 +19,8 @@
         private String video;
         @Column(name = "soft_delete")
         private boolean softDelete=false;
+        @Column(name = "exits_exams_id")
+        private boolean exitsExamsId;
         @ManyToOne
         @JoinColumn(name = "category_id", nullable = false)
         private Categorys category;

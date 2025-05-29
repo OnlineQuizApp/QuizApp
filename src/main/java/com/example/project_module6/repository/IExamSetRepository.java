@@ -31,6 +31,7 @@ import java.util.List;
 
     @Query(value = """
             select 
+           distinct 
             es.id,
             es.name,
             es.img,
@@ -48,7 +49,17 @@ import java.util.List;
     Page<ExamSets> findAllExamSet(Pageable pageable);
 
     @Query(value = """
-            select *from exam_sets es where es.soft_delete=false
+             select 
+             distinct 
+            es.id,
+            es.name,
+            es.img,
+            es.creation_date,
+            es.soft_delete
+            from exam_sets es
+            join exam_set_exam ese on es.id=ese.exam_set_id
+            where es.soft_delete=false
+            and es.id in(select ese.exam_set_id from exam_set_exam ese)
               """
             , nativeQuery = true)
     List<ExamSets> getAllExamSet();
