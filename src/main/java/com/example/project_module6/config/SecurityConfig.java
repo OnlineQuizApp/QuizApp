@@ -39,7 +39,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:3000")); // Hoặc "*" nếu không bảo mật
+//        config.setAllowedOrigins(List.of("http://localhost:3000")); // Hoặc "*" nếu không bảo mật
+        config.setAllowedOrigins(List.of("http://10.10.8.179:3000")); // Hoặc "*" nếu không bảo mật
+        config.setAllowedOriginPatterns(List.of("http://10.10.8.*:3000")); // Hoặc "*" nếu không bảo mật
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type","Content-Disposition"));
         config.setAllowCredentials(true); // Nếu frontend dùng cookie hoặc token
@@ -56,13 +58,13 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ Thêm dòng này
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/account/login", "/api/account/register","/api/user/forgot-password",
-                                "/api/user/reset-password","/api/questions/**","/api/category/**","/api/exams/**","/api/user/exams","/api/user/*/questions","/api/exams/submit","/api/exam-set/list","/api/exams/exam-set","/api/results/**","/api/admin/users","/api/exams/statistics").permitAll()
+                                "/api/user/reset-password","/api/questions/**","/api/category/**","/api/exams/**","/chat/**","/api/rating-points/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/questions/upload-file-img","/api/questions/upload-file-img/**").permitAll()
 //                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/exams/submit/authenticated","/api/results/user/**").hasRole("USER")
 
 
-                        .requestMatchers("/api/exam-set/create/confirm/**").hasRole("ADMIN") // Thêm dòng này
+                        .requestMatchers("/api/exam-set/create/confirm/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/exam-set/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/exam-set/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/exam-set/**").hasAuthority("ROLE_ADMIN")

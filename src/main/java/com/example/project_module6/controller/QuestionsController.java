@@ -27,7 +27,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@CrossOrigin(value = "*")
+//@CrossOrigin(value = "*")
 @RequestMapping("/api/questions")
 public class QuestionsController {
     @Autowired
