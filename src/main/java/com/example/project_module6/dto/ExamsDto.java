@@ -3,10 +3,7 @@ package com.example.project_module6.dto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter
-        ;
-
-import java.time.LocalTime;
+import lombok.Setter;
 
 
 @AllArgsConstructor
@@ -29,10 +26,4 @@ public class ExamsDto {
         this.testTime = testTime;
     }
 
-    public ExamsDto(String title, String category, int numberOfQuestions, String testTime) {
-        this.title = title;
-        this.category = category;
-        this.numberOfQuestions = numberOfQuestions;
-        this.testTime = testTime;
-    }
 }

@@ -177,4 +177,9 @@ public class ExamSetController {
         examSetService.deleteExamByExamSetId(idExamSet,idExams);
         return ResponseEntity.ok("Xoá đề thi thành công!");
     }
+    @GetMapping("/list")
+    public ResponseEntity<Page<ExamSets>> getAllActiveExamSets(@PageableDefault(size = 4) Pageable pageable) {
+        Page<ExamSets> examSets = examSetRepository.findAllExamSet(pageable);
+        return ResponseEntity.ok(examSets);
+    }
 }

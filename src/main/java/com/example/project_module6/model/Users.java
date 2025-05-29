@@ -26,6 +26,8 @@ public class Users {
     private boolean status = true;
     @Column(name = "created_at")
     private LocalDate createAt;
+    @Column(name = "soft_delete")
+    private boolean softDelete=false;
 
     public enum Role {
         ADMIN,

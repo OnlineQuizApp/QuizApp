@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -102,4 +103,17 @@ public interface IExamsRepository extends JpaRepository<Exams, Integer> {
 
 
     boolean existsByTitleAndCategory(String title, String category);
+
+    @Query(value = "SELECT e.* FROM exams e " +
+            "INNER JOIN exam_set_exam ese ON e.id = ese.exam_id " +
+            "WHERE ese.exam_set_id = :examSetId AND e.soft_delete = FALSE", nativeQuery = true)
+    List<Exams> findExamsByExamSetId(@Param("examSetId") Integer examSetId);
+    @Query(value = "SELECT e.id, e.title, COUNT(r.id) as total_participants, " +
+            "SUM(CASE WHEN r.total_score > 8 THEN 1 ELSE 0 END) as above_eight, " +
+            "(SUM(CASE WHEN r.total_score > 8 THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(r.id), 0)) as percentage_above_eight " +
+            "FROM exams e LEFT JOIN results r ON e.id = r.exam_id " +
+            "WHERE e.soft_delete = FALSE " +
+            "GROUP BY e.id, e.title " +
+            "ORDER BY percentage_above_eight DESC", nativeQuery = true)
+    List<Object[]> getExamStatistics();
 }

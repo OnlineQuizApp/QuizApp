@@ -56,12 +56,13 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ Thêm dòng này
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/account/login", "/api/account/register","/api/user/forgot-password",
-                                "/api/user/reset-password","/api/questions/**","/api/category/**","/api/exams/**","/chat/**").permitAll()
+                                "/api/user/reset-password","/api/questions/**","/api/category/**","/api/exams/**","/api/user/exams","/api/user/*/questions","/api/exams/submit","/api/exam-set/list","/api/exams/exam-set","/api/results/**","/api/admin/users","/api/exams/statistics").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/questions/upload-file-img","/api/questions/upload-file-img/**").permitAll()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+//                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/exams/submit/authenticated","/api/results/user/**").hasRole("USER")
 
 
-                        .requestMatchers("/api/exam-set/create/confirm/**").hasRole("ADMIN")
+                        .requestMatchers("/api/exam-set/create/confirm/**").hasRole("ADMIN") // Thêm dòng này
                         .requestMatchers(HttpMethod.POST, "/api/exam-set/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/exam-set/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/exam-set/**").hasAuthority("ROLE_ADMIN")

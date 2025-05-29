@@ -15,4 +15,6 @@ public interface IAnswersRepository extends JpaRepository<Answers,Integer> {
     void deleteAnswersByQuestionId(int id);
 
     List<Answers> findByQuestionId(Integer questionId);
+    List<Answers> findByQuestionIdAndCorrectTrue(int id);
+    Answers findById(int id);
 }

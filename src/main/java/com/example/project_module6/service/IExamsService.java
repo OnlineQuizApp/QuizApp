@@ -1,7 +1,6 @@
 package com.example.project_module6.service;
 
-import com.example.project_module6.dto.ExamResponseDto;
-import com.example.project_module6.dto.ExamsDto;
+import com.example.project_module6.dto.*;
 import com.example.project_module6.model.Exams;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,4 +22,11 @@ public interface IExamsService {
     List<ExamResponseDto> getAllExamsWithStatus(Integer userId, Pageable pageable);
     int countBySoftDeleteFalse();
     void deleteQuestionOfExams(int idExams,int idQuestions);
+    List<ExamsDto> getAllExams();
+    ExamsDto getExamById(int id);
+    List<QuestionDTO> getExamQuestions(int examId);
+    ExamResultDTO submitExam(SubmitExamRequest request);
+    ExamResultDTO submitExamAuthenticated(SubmitExamRequest request, int userId);
+    List<Exams> getExamsByExamSetId(Integer examSetId);
+    List<ExamStatisticsDTO> getExamStatistics();
 }
