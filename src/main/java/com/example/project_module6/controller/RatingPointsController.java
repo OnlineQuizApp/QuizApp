@@ -23,7 +23,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/rating-points")
-@CrossOrigin(value = "*")
+//@CrossOrigin(value = "http://10.10.8.42:3000")
 public class RatingPointsController {
     @Autowired
     private IRatingPointsService ratingPointsService;

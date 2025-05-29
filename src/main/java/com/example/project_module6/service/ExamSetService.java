@@ -110,12 +110,13 @@ public class ExamSetService implements IExamSetService {
         if (examSets != null) {
             List<ExamSets> examSetsList = examSetRepository.getAllExamSet();
             for (ExamSets examSets1 : examSetsList) {
-                if (examSetDto.getName().equals(examSets1.getName())&&examSetDto.getId()!=examSets1.getId()) {
+                if (examSetDto.getName().equals(examSets1.getName())&&id!=examSets1.getId()) {
                     throw new IllegalArgumentException("Bộ đề này đã có trong hệ thống");
                 }
             }
             examSets.setName(examSetDto.getName());
             examSets.setCreationDate(examSetDto.getCreationDate());
+            examSets.setImg(examSetDto.getImg());
             ExamSetExam examSetExam = new ExamSetExam();
             examSetExam.setExamSet(examSets);
             examSetRepository.save(examSets);
